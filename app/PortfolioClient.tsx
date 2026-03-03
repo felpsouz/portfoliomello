@@ -27,15 +27,61 @@ function GrainOverlay() {
   )
 }
 
-export default function PortfolioClient({ projects, settings }: Props) {
+const PROJECTS: ProjectWithImage[] = [
+  // Identidade Visual
+  { _id: 'iv1', title: 'Will Cosméticos e Perfumaria', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'Logo', 'Visual'], imageUrl: null },
+  { _id: 'iv2', title: 'Instituto Caridade Rosa', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'ONG'], imageUrl: null },
+  { _id: 'iv3', title: 'Magnata Estética em Vidros', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'Logo'], imageUrl: null },
+  { _id: 'iv4', title: 'Doceria ao Quadrado', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Food'], imageUrl: null },
+  { _id: 'iv5', title: 'Restaurante Tudo Gostoso', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Food'], imageUrl: null },
+  { _id: 'iv6', title: 'Auto Elétrica AC Mecânica', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Auto'], imageUrl: null },
+  // Social Media
+  { _id: 'sm1', title: 'Ravello Pisos e Revestimentos', category: 'Social Media', year: '2023', tags: ['Social', 'Conteúdo'], imageUrl: null },
+  { _id: 'sm2', title: 'Instituto Caridade Rosa', category: 'Social Media', year: '2023', tags: ['Social', 'ONG'], imageUrl: null },
+  { _id: 'sm3', title: 'Diego França Barbeiro', category: 'Social Media', year: '2024', tags: ['Social', 'Barbearia'], imageUrl: null },
+  { _id: 'sm4', title: 'Loctal Máquinas e Serviços', category: 'Social Media', year: '2024', tags: ['Social', 'B2B'], imageUrl: null },
+  { _id: 'sm5', title: 'Igreja Unida', category: 'Social Media', year: '2024', tags: ['Social', 'Institucional'], imageUrl: null },
+  // Impressos / OOH
+  { _id: 'im1', title: 'Convites — Chá de Fralda, Empresarial, Aniversário', category: 'Impressos / OOH', year: '2023', tags: ['Impresso', 'Convite'], imageUrl: null },
+  { _id: 'im2', title: 'Adesivos — Café com Case, Assistente Virtual', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Adesivo'], imageUrl: null },
+  { _id: 'im3', title: 'Banner — Ravello, Igreja Unida, Pintor', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Banner'], imageUrl: null },
+  { _id: 'im4', title: 'Cartão de Visita — Patrícia Modas', category: 'Impressos / OOH', year: '2023', tags: ['Impresso', 'Cartão'], imageUrl: null },
+  { _id: 'im5', title: 'Backdrop — Café com Case', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Evento'], imageUrl: null },
+  { _id: 'im6', title: 'Espaço Instagramável — Café com Case', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Evento'], imageUrl: null },
+  { _id: 'im7', title: 'Vestuário — Café com Case, Magnata, e outros', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Vestuário'], imageUrl: null },
+  { _id: 'im8', title: 'Embalagem — Will Cosméticos, Doceria ao Quadrado', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Embalagem'], imageUrl: null },
+  // Fotografia
+  { _id: 'fo1', title: 'Formaturas — ABC e Graduação', category: 'Fotografia', year: '2023', tags: ['Foto', 'Evento'], imageUrl: null },
+  { _id: 'fo2', title: 'Ensaios Externos — Psicólogo, 3ª Idade, Streetwear', category: 'Fotografia', year: '2023', tags: ['Foto', 'Ensaio'], imageUrl: null },
+  { _id: 'fo3', title: 'Eventos — Café com Case', category: 'Fotografia', year: '2024', tags: ['Foto', 'Evento'], imageUrl: null },
+  { _id: 'fo4', title: 'Empresarial — Ravello Pisos e Revestimentos', category: 'Fotografia', year: '2024', tags: ['Foto', 'Empresarial'], imageUrl: null },
+  { _id: 'fo5', title: 'Institucional — Instituto Caridade Rosa', category: 'Fotografia', year: '2023', tags: ['Foto', 'Institucional'], imageUrl: null },
+  { _id: 'fo6', title: 'Eventos Sociais — Chá de Fralda, Aniversário', category: 'Fotografia', year: '2024', tags: ['Foto', 'Social'], imageUrl: null },
+  { _id: 'fo7', title: 'Documental — Rua, Skate, Batalha de Rima, Natureza', category: 'Fotografia', year: '2024', tags: ['Foto', 'Documental'], imageUrl: null },
+]
+
+const FEEDBACKS = [
+  { name: 'Rafael Oliveira', role: 'CEO — Ravello Pisos', text: 'O Isaías transformou completamente a nossa presença digital. Cada peça entregue tem identidade e propósito. Recomendo sem hesitar.', stars: 5 },
+  { name: 'Dra. Carla Mendes', role: 'Psicóloga', text: 'Meu ensaio fotográfico foi incrível. Ele soube captar exatamente a essência que eu queria transmitir para meus pacientes. Profissional e sensível.', stars: 5 },
+  { name: 'Will Cosméticos', role: 'Fundadora — Will Cosméticos', text: 'A identidade visual que o Isaías criou para a minha marca ficou perfeita. Ele entendeu o meu negócio e traduziu em design de verdade.', stars: 5 },
+  { name: 'Pastor Jonatas', role: 'Igreja Unida', text: 'Toda nossa comunicação visual melhorou muito depois que começamos a trabalhar com o Isaías. Material de qualidade, entrega no prazo e muita criatividade.', stars: 5 },
+  { name: 'Diego França', role: 'Barbeiro', text: 'As artes para o Instagram do meu salão ficaram profissionais de verdade. Meus clientes sempre comentam. Parceria incrível!', stars: 5 },
+  { name: 'Café com Case', role: 'Organização de Eventos', text: 'Ele foi responsável por toda identidade do nosso evento — desde o backdrop até a fotografia. Resultado impecável e muito acima do esperado.', stars: 5 },
+]
+
+export default function PortfolioClient({ projects: _projects, settings }: Props) {
+  const projects = _projects?.length ? _projects : PROJECTS
+
   const [loaded, setLoaded] = useState(false)
   const [hovered, setHovered] = useState<string | null>(null)
   const [scrollY, setScrollY] = useState(0)
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const [formData, setFormData] = useState({ nome: '', telefone: '', email: '' })
+  const [formSent, setFormSent] = useState(false)
   const touchStartX = useRef<number>(0)
   const touchStartY = useRef<number>(0)
 
-  const { heroSection: hero, aboutSection: about, services, contactSection: contact } = settings
+  const { heroSection: hero, aboutSection: about, services, contactSection: contact } = settings || {}
 
   const openLightbox = (index: number) => {
     if (!projects[index]?.imageUrl) return
@@ -70,6 +116,14 @@ export default function PortfolioClient({ projects, settings }: Props) {
     }
   }
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Aqui você pode integrar com seu backend/CRM/email
+    console.log('Lead capturado:', formData)
+    setFormSent(true)
+    setFormData({ nome: '', telefone: '', email: '' })
+  }
+
   useEffect(() => {
     setTimeout(() => setLoaded(true), 80)
     const onScroll = () => setScrollY(window.scrollY)
@@ -94,6 +148,9 @@ export default function PortfolioClient({ projects, settings }: Props) {
   const indexComImagem = lightbox !== null
     ? projects.slice(0, lightbox + 1).filter(p => p.imageUrl).length
     : 0
+
+  // Group projects by category
+  const categories = Array.from(new Set(projects.map(p => p.category)))
 
   return (
     <>
@@ -122,7 +179,7 @@ export default function PortfolioClient({ projects, settings }: Props) {
         /* NAV */
         .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; transition: background 0.3s, padding 0.3s, border-color 0.3s; border-bottom: 1px solid transparent; }
         .nav.solid { background: rgba(13,13,13,0.92); backdrop-filter: blur(16px); padding: 16px 48px; border-color: var(--border); }
-        .nav-logo { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.1em; color: var(--text); text-decoration: none; }
+        .nav-logo { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
         .nav-logo span { color: var(--accent); }
         .nav-links { display: flex; gap: 36px; list-style: none; }
         .nav-links a { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
@@ -130,40 +187,28 @@ export default function PortfolioClient({ projects, settings }: Props) {
         .nav-cta { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--bg); background: var(--accent); text-decoration: none; padding: 10px 20px; transition: background 0.2s, transform 0.2s; }
         .nav-cta:hover { background: var(--accent2); color: var(--bg); transform: translate(-2px,-2px); }
 
-        /* HERO */
-        .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; overflow: hidden; }
-        .hero-left { display: flex; flex-direction: column; justify-content: flex-end; padding: 0 48px 80px; position: relative; z-index: 2; border-right: 1px solid var(--border); }
-        .hero-number { font-family: var(--font-display); font-size: clamp(140px, 28vw, 420px); line-height: 0.85; color: transparent; -webkit-text-stroke: 1px var(--border); position: absolute; bottom: -20px; left: -10px; pointer-events: none; z-index: 0; overflow: hidden; max-width: 100%; }
-        .hero-tag { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; position: relative; z-index: 2; opacity: 0; transform: translateX(-20px); transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s; }
-        .hero-tag.in { opacity: 1; transform: translateX(0); }
-        .hero-tag-line { width: 32px; height: 2px; background: var(--accent); flex-shrink: 0; }
-        .hero-title { font-family: var(--font-display); font-size: clamp(72px, 9vw, 140px); line-height: 0.9; letter-spacing: 0.02em; color: var(--text); position: relative; z-index: 2; margin-bottom: 40px; }
-        .hero-title .accent { color: var(--accent); }
-        .hero-title-line { overflow: hidden; display: block; }
-        .hero-title-word { display: block; transform: translateY(110%); transition: transform 0.9s cubic-bezier(0.16,1,0.3,1); }
-        .hero-title-word.in { transform: translateY(0); }
-        .hero-title-line:nth-child(1) .hero-title-word { transition-delay: 0.2s; }
-        .hero-title-line:nth-child(2) .hero-title-word { transition-delay: 0.35s; }
-        .hero-title-line:nth-child(3) .hero-title-word { transition-delay: 0.5s; }
-        .hero-desc { max-width: 380px; font-size: 15px; font-weight: 200; line-height: 1.8; color: #888; position: relative; z-index: 2; opacity: 0; transition: opacity 0.9s ease 0.8s; }
-        .hero-desc.in { opacity: 1; }
-        .hero-right { position: relative; overflow: hidden; background: var(--surface); }
-        .hero-right-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #1a0a00 0%, #0d0d0d 50%, #001a1a 100%); }
-        .hero-right-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; }
-        .hero-stat { display: flex; flex-direction: column; align-items: center; padding: 32px 48px; border: 1px solid var(--border); width: min(240px, 70%); opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.2s; }
-        .hero-stat:hover { border-color: var(--accent); }
-        .hero-stat.in { opacity: 1; transform: translateY(0); }
-        .hero-stat:nth-child(1) { transition-delay: 0.4s; }
-        .hero-stat:nth-child(2) { transition-delay: 0.55s; margin-left: clamp(0px, 8vw, 60px); }
-        .hero-stat:nth-child(3) { transition-delay: 0.7s; }
-        .stat-number { font-family: var(--font-display); font-size: 64px; line-height: 1; color: var(--text); letter-spacing: 0.04em; }
-        .stat-number span { color: var(--accent); }
-        .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
-        .hero-scroll-indicator { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); opacity: 0; transition: opacity 0.6s ease 1.2s; z-index: 10; }
-        .hero-scroll-indicator.in { opacity: 1; }
-        .scroll-bar { width: 1px; height: 48px; background: var(--border); position: relative; overflow: hidden; }
-        .scroll-bar::after { content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 100%; background: var(--accent); animation: scrollDrop 2s ease-in-out infinite; }
-        @keyframes scrollDrop { 0% { top: -100%; } 50%, 100% { top: 100%; } }
+        /* ABOUT / APRESENTAÇÃO HERO */
+        .about-hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; border-bottom: 1px solid var(--border); }
+        .about-hero-photo { position: relative; overflow: hidden; background: var(--surface); }
+        .about-hero-photo-inner { position: absolute; inset: 0; }
+        .about-hero-photo-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+        .photo-placeholder-circle { width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .photo-placeholder-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+        .about-hero-photo-overlay { position: absolute; inset: 0; background: linear-gradient(to right, transparent 60%, var(--bg) 100%); z-index: 1; }
+        .about-hero-content { display: flex; flex-direction: column; justify-content: center; padding: 120px 64px 80px; position: relative; z-index: 2; }
+        .about-hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 32px; opacity: 0; transform: translateX(-20px); transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s; }
+        .about-hero-eyebrow.in { opacity: 1; transform: translateX(0); }
+        .about-hero-eyebrow-line { width: 32px; height: 2px; background: var(--accent); flex-shrink: 0; }
+        .about-hero-name { font-family: var(--font-display); font-size: clamp(52px, 6vw, 88px); line-height: 0.9; letter-spacing: 0.02em; margin-bottom: 8px; }
+        .about-hero-name .accent { color: var(--accent); }
+        .about-hero-role { font-size: 13px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 40px; }
+        .about-hero-text { max-width: 480px; font-size: 15px; font-weight: 200; line-height: 1.9; color: #888; margin-bottom: 16px; opacity: 0; transition: opacity 0.9s ease 0.5s; }
+        .about-hero-text.in { opacity: 1; }
+        .about-hero-divider { width: 48px; height: 2px; background: var(--accent); margin: 32px 0; }
+        .about-hero-cta { display: inline-flex; align-items: center; gap: 12px; background: transparent; border: 1px solid var(--accent); color: var(--accent); font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 14px 28px; transition: background 0.2s, color 0.2s, transform 0.2s; margin-top: 16px; opacity: 0; transition: opacity 0.9s ease 0.8s, background 0.2s, color 0.2s, transform 0.2s; cursor: pointer; }
+        .about-hero-cta.in { opacity: 1; }
+        .about-hero-cta:hover { background: var(--accent); color: var(--bg); transform: translate(-2px, -2px); }
+        .about-hero-accent-block { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); z-index: 3; }
 
         /* TICKER */
         .ticker { overflow: hidden; width: 100%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--accent); }
@@ -179,8 +224,11 @@ export default function PortfolioClient({ projects, settings }: Props) {
         .work-title { font-family: var(--font-display); font-size: clamp(56px, 7vw, 96px); line-height: 0.9; letter-spacing: 0.04em; }
         .work-title-alt { color: transparent; -webkit-text-stroke: 1px var(--text); }
         .work-count { font-family: var(--font-display); font-size: 14px; letter-spacing: 0.1em; color: var(--muted); padding-bottom: 12px; }
+        .category-block { margin-bottom: 64px; }
+        .category-label { font-size: 10px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); margin-bottom: 0; padding: 16px 0; border-top: 2px solid var(--accent); display: flex; align-items: center; gap: 12px; }
+        .category-label-line { flex: 1; height: 1px; background: var(--border); }
         .project-list { display: flex; flex-direction: column; width: 100%; }
-        .project-row { display: grid; grid-template-columns: 64px 1fr auto auto; align-items: center; gap: 16px; padding: 28px 0; border-bottom: 1px solid var(--border); cursor: pointer; position: relative; overflow: hidden; transition: padding 0.3s ease; min-width: 0; }
+        .project-row { display: grid; grid-template-columns: 64px 1fr auto auto; align-items: center; gap: 16px; padding: 24px 0; border-bottom: 1px solid var(--border); cursor: pointer; position: relative; overflow: hidden; transition: padding 0.3s ease; min-width: 0; }
         .project-row::before { content: ''; position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); z-index: 0; }
         .project-row:hover::before { transform: scaleX(1); }
         .project-row:hover { padding-left: 24px; }
@@ -189,131 +237,70 @@ export default function PortfolioClient({ projects, settings }: Props) {
         .project-row:hover .project-row-cat { color: var(--bg) !important; }
         .project-row:hover .project-row-tags span { background: rgba(0,0,0,0.2); color: var(--bg); border-color: transparent; }
         .project-row-num { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.1em; color: var(--muted); position: relative; z-index: 1; transition: color 0.2s; }
-        .project-row-title { font-family: var(--font-display); font-size: clamp(22px, 3.5vw, 48px); letter-spacing: 0.04em; color: var(--text); position: relative; z-index: 1; transition: color 0.2s; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .project-row-title { font-family: var(--font-display); font-size: clamp(18px, 2.8vw, 38px); letter-spacing: 0.04em; color: var(--text); position: relative; z-index: 1; transition: color 0.2s; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .project-row-cat { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); position: relative; z-index: 1; transition: color 0.2s; white-space: nowrap; }
         .project-row-tags { display: flex; gap: 6px; position: relative; z-index: 1; }
         .project-row-tags span { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; transition: all 0.2s; }
-        .project-cover { position: absolute; right: 0; top: 0; bottom: 0; width: 180px; overflow: hidden; opacity: 0; transition: opacity 0.3s ease; z-index: 2; pointer-events: none; }
-        .project-row:hover .project-cover { opacity: 1; }
         .no-image-row { cursor: default; }
         .no-image-row:hover::before { transform: scaleX(0); }
 
         /* LIGHTBOX */
-        .lightbox-overlay {
-          position: fixed; inset: 0; z-index: 1000;
-          background: rgba(0,0,0,0.96);
-          display: flex; flex-direction: column;
-          animation: lbIn 0.3s ease;
-        }
+        .lightbox-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; animation: lbIn 0.3s ease; }
         @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .lightbox-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 20px 32px;
-          border-bottom: 1px solid #1a1a1a;
-          flex-shrink: 0;
-        }
+        .lightbox-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
         .lightbox-info { display: flex; flex-direction: column; gap: 4px; }
         .lightbox-title { font-family: var(--font-display); font-size: clamp(18px, 3vw, 28px); letter-spacing: 0.06em; color: var(--text); }
         .lightbox-meta { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
         .lightbox-meta span { color: var(--accent); margin-right: 12px; }
-
         .lightbox-controls { display: flex; align-items: center; gap: 8px; }
-        .lightbox-btn {
-          width: 44px; height: 44px;
-          display: flex; align-items: center; justify-content: center;
-          border: 1px solid var(--border);
-          background: transparent;
-          color: var(--text);
-          font-size: 18px;
-          cursor: pointer;
-          transition: background 0.2s, border-color 0.2s, color 0.2s;
-          font-family: var(--font-display);
-          letter-spacing: 0.05em;
-        }
+        .lightbox-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 18px; cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s; font-family: var(--font-display); letter-spacing: 0.05em; }
         .lightbox-btn:hover { background: var(--accent); border-color: var(--accent); color: #000; }
         .lightbox-close { font-size: 22px; }
-
-        .lightbox-counter {
-          font-family: var(--font-display);
-          font-size: 13px;
-          letter-spacing: 0.1em;
-          color: var(--muted);
-          padding: 0 16px;
-        }
-
-        .lightbox-image-wrap {
-          flex: 1;
-          position: relative;
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .lightbox-image-wrap img {
-          object-fit: contain !important;
-          max-height: 100%;
-          max-width: 100%;
-        }
-
-        .lightbox-arrow {
-          position: absolute;
-          top: 50%; transform: translateY(-50%);
-          width: 56px; height: 56px;
-          display: flex; align-items: center; justify-content: center;
-          border: 1px solid var(--border);
-          background: rgba(13,13,13,0.8);
-          color: var(--text);
-          font-size: 20px;
-          cursor: pointer;
-          transition: background 0.2s, border-color 0.2s;
-          z-index: 2;
-          backdrop-filter: blur(8px);
-        }
+        .lightbox-counter { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.1em; color: var(--muted); padding: 0 16px; }
+        .lightbox-image-wrap { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .lightbox-image-wrap img { object-fit: contain !important; max-height: 100%; max-width: 100%; }
+        .lightbox-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: rgba(13,13,13,0.8); color: var(--text); font-size: 20px; cursor: pointer; transition: background 0.2s, border-color 0.2s; z-index: 2; backdrop-filter: blur(8px); }
         .lightbox-arrow:hover { background: var(--accent); border-color: var(--accent); color: #000; }
         .lightbox-arrow.left { left: 24px; }
         .lightbox-arrow.right { right: 24px; }
+        .lightbox-tags { display: flex; gap: 8px; flex-wrap: wrap; padding: 16px 32px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
+        .lightbox-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--border); color: var(--muted); }
 
-        .lightbox-tags {
-          display: flex; gap: 8px; flex-wrap: wrap;
-          padding: 16px 32px;
-          border-top: 1px solid #1a1a1a;
-          flex-shrink: 0;
-        }
-        .lightbox-tag {
-          font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
-          padding: 4px 10px; border: 1px solid var(--border); color: var(--muted);
-        }
+        /* FEEDBACKS */
+        .feedbacks-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
+        .feedbacks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
+        .feedback-card { background: var(--surface); padding: 40px; position: relative; overflow: hidden; transition: background 0.3s; display: flex; flex-direction: column; gap: 20px; }
+        .feedback-card:hover { background: var(--bg); }
+        .feedback-card:hover .feedback-bar { width: 100%; }
+        .feedback-bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
+        .feedback-stars { display: flex; gap: 4px; }
+        .feedback-star { color: var(--accent2); font-size: 14px; }
+        .feedback-text { font-size: 14px; font-weight: 200; line-height: 1.8; color: #aaa; font-style: italic; flex: 1; }
+        .feedback-text::before { content: '"'; font-family: var(--font-display); font-size: 48px; line-height: 0; color: var(--accent); opacity: 0.3; display: block; margin-bottom: 8px; }
+        .feedback-author { display: flex; flex-direction: column; gap: 4px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .feedback-name { font-family: var(--font-display); font-size: 18px; letter-spacing: 0.06em; color: var(--text); }
+        .feedback-role { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
 
-        /* ABOUT */
-        .about-section { display: grid; grid-template-columns: 1fr 1fr; min-height: 80vh; border-top: 1px solid var(--border); }
-        .about-visual { background: var(--surface); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--border); min-height: 600px; }
-        .about-giant-letter { font-family: var(--font-display); font-size: clamp(200px, 30vw, 400px); line-height: 1; color: transparent; -webkit-text-stroke: 2px var(--border); user-select: none; position: absolute; overflow: hidden; }
-        .about-visual-label { position: absolute; bottom: 40px; left: 48px; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
-        .about-accent-block { position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: var(--accent); }
-        .about-content { padding: 80px 64px; display: flex; flex-direction: column; justify-content: center; }
-        .about-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-        .about-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-        .about-heading { font-family: var(--font-display); font-size: clamp(48px, 5vw, 76px); line-height: 0.95; letter-spacing: 0.03em; margin-bottom: 40px; }
-        .about-heading .line2 { color: var(--accent); }
-        .about-body { font-size: 15px; font-weight: 200; line-height: 1.9; color: #888; margin-bottom: 16px; }
-        .about-divider { width: 48px; height: 2px; background: var(--accent); margin: 40px 0; }
-        .about-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
-        .about-list-item { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); }
-        .about-list-item::before { content: ''; width: 6px; height: 6px; background: var(--accent); flex-shrink: 0; }
-
-        /* SERVICES */
-        .services-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
-        .service-card { background: var(--surface); padding: 48px 40px; position: relative; overflow: hidden; transition: background 0.3s; }
-        .service-card:hover { background: var(--bg); }
-        .service-card:hover .service-num { color: var(--accent); }
-        .service-card:hover .service-bar { width: 100%; }
-        .service-bar { position: absolute; bottom: 0; left: 0; height: 2px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
-        .service-num { font-family: var(--font-display); font-size: 64px; line-height: 1; color: var(--border); margin-bottom: 32px; transition: color 0.3s; }
-        .service-name { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; margin-bottom: 16px; }
-        .service-desc { font-size: 13px; font-weight: 200; line-height: 1.8; color: #666; }
+        /* CONTACT FORM */
+        .form-section { padding: 120px 48px; border-top: 1px solid var(--border); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 80px; align-items: start; }
+        .form-left { }
+        .form-left-title { font-family: var(--font-display); font-size: clamp(40px, 5vw, 72px); line-height: 0.9; letter-spacing: 0.03em; margin-bottom: 24px; }
+        .form-left-title .inv { color: transparent; -webkit-text-stroke: 1px var(--text); }
+        .form-left-desc { font-size: 14px; font-weight: 200; line-height: 1.9; color: #666; max-width: 400px; }
+        .form-right { display: flex; flex-direction: column; gap: 0; }
+        .form-field { display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border); padding: 24px 0; }
+        .form-field:first-child { border-top: 1px solid var(--border); }
+        .form-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+        .form-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-body); font-size: 16px; font-weight: 200; padding: 8px 0; width: 100%; }
+        .form-input::placeholder { color: var(--muted); }
+        .form-input:focus { color: var(--text); }
+        .form-submit { margin-top: 32px; display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s; cursor: pointer; border: none; width: 100%; justify-content: center; }
+        .form-submit:hover { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
+        .form-success { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; border: 1px solid var(--accent); text-align: center; gap: 16px; }
+        .form-success-icon { font-family: var(--font-display); font-size: 64px; color: var(--accent); line-height: 1; }
+        .form-success-title { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.06em; }
+        .form-success-text { font-size: 14px; font-weight: 200; color: #666; line-height: 1.8; }
 
         /* CONTACT */
         .contact-section { padding: 120px 48px; border-top: 1px solid var(--border); position: relative; overflow: hidden; width: 100%; }
@@ -328,39 +315,48 @@ export default function PortfolioClient({ projects, settings }: Props) {
         .contact-btn:hover { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
 
         /* FOOTER */
-        footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; justify-content: space-between; align-items: center; background: var(--surface); }
-        .footer-logo { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.1em; color: var(--text); text-decoration: none; }
+        footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; background: var(--surface); flex-wrap: wrap; gap: 24px; }
+        .footer-logo { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
         .footer-logo span { color: var(--accent); }
         .footer-copy { font-size: 11px; font-weight: 400; letter-spacing: 0.1em; color: var(--muted); }
-        .footer-links { display: flex; gap: 28px; }
-        .footer-links a { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-        .footer-links a:hover { color: var(--accent); }
+        .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+        .footer-links a { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; padding: 6px 12px; border: 1px solid var(--border); }
+        .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
+
+        /* SERVICES */
+        .services-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
+        .service-card { background: var(--surface); padding: 48px 40px; position: relative; overflow: hidden; transition: background 0.3s; }
+        .service-card:hover { background: var(--bg); }
+        .service-card:hover .service-num { color: var(--accent); }
+        .service-card:hover .service-bar { width: 100%; }
+        .service-bar { position: absolute; bottom: 0; left: 0; height: 2px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
+        .service-num { font-family: var(--font-display); font-size: 64px; line-height: 1; color: var(--border); margin-bottom: 32px; transition: color 0.3s; }
+        .service-name { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; margin-bottom: 16px; }
+        .service-desc { font-size: 13px; font-weight: 200; line-height: 1.8; color: #666; }
 
         @media (max-width: 900px) {
           .nav { padding: 20px 24px; }
           .nav.solid { padding: 14px 24px; }
           .nav-links, .nav-cta { display: none; }
-          .hero { grid-template-columns: 1fr; min-height: auto; }
-          .hero-right { display: none; }
-          .hero-left { padding: 110px 24px 80px; border-right: none; min-height: 100vh; }
-          .hero-number { font-size: clamp(120px, 40vw, 200px); left: -8px; }
+          .about-hero { grid-template-columns: 1fr; min-height: auto; }
+          .about-hero-photo { display: none; }
+          .about-hero-content { padding: 110px 24px 80px; min-height: 100vh; }
           .work-section { padding: 80px 24px; }
           .work-header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 48px; }
-          .project-row { grid-template-columns: 48px 1fr; gap: 12px; padding: 20px 0; }
-          .project-row-cat, .project-row-tags, .project-cover { display: none; }
-          .project-row-title { font-size: clamp(20px, 5vw, 32px); white-space: normal; }
-          .about-section { grid-template-columns: 1fr; }
-          .about-visual { display: none; }
-          .about-content { padding: 60px 24px; }
-          .about-heading { font-size: clamp(40px, 10vw, 64px); }
-          .about-list { grid-template-columns: 1fr 1fr; }
+          .project-row { grid-template-columns: 48px 1fr; gap: 12px; padding: 18px 0; }
+          .project-row-cat, .project-row-tags { display: none; }
+          .project-row-title { font-size: clamp(18px, 4.5vw, 28px); white-space: normal; }
+          .feedbacks-section { padding: 80px 24px; }
+          .feedbacks-grid { grid-template-columns: 1fr; }
+          .form-section { padding: 80px 24px; }
+          .form-grid { grid-template-columns: 1fr; gap: 40px; }
           .services-section { padding: 80px 24px; }
           .services-grid { grid-template-columns: 1fr; }
           .contact-section { padding: 80px 24px; }
           .contact-heading { font-size: clamp(56px, 14vw, 100px); }
           .contact-btn { padding: 16px 32px; width: 100%; justify-content: center; }
-          footer { padding: 24px; flex-direction: column; gap: 16px; text-align: center; }
-          .footer-links { flex-wrap: wrap; justify-content: center; }
+          footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
           .lightbox-arrow { width: 44px; height: 44px; }
           .lightbox-arrow.left { left: 8px; }
           .lightbox-arrow.right { right: 8px; }
@@ -370,12 +366,11 @@ export default function PortfolioClient({ projects, settings }: Props) {
         }
 
         @media (max-width: 480px) {
-          .hero-title { font-size: clamp(56px, 14vw, 80px); }
-          .hero-desc { font-size: 14px; }
+          .about-hero-name { font-size: clamp(44px, 12vw, 64px); }
           .work-title { font-size: clamp(48px, 12vw, 72px); }
-          .about-list { grid-template-columns: 1fr; }
           .contact-heading { font-size: clamp(48px, 13vw, 80px); }
           .contact-email { font-size: clamp(16px, 4.5vw, 24px); word-break: break-all; }
+          .form-left-title { font-size: clamp(36px, 10vw, 56px); }
         }
       `}</style>
 
@@ -384,27 +379,17 @@ export default function PortfolioClient({ projects, settings }: Props) {
         <div
           className="lightbox-overlay"
           onClick={closeLightbox}
-          onTouchStart={(e) => {
-            touchStartX.current = e.touches[0].clientX
-            touchStartY.current = e.touches[0].clientY
-          }}
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; touchStartY.current = e.touches[0].clientY }}
           onTouchEnd={(e) => {
             const dx = e.changedTouches[0].clientX - touchStartX.current
             const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
-            if (Math.abs(dx) > 50 && dy < 80) {
-              if (dx < 0) nextProject()
-              else prevProject()
-            }
+            if (Math.abs(dx) > 50 && dy < 80) { if (dx < 0) nextProject(); else prevProject() }
           }}
         >
-          {/* Header */}
           <div className="lightbox-header" onClick={e => e.stopPropagation()}>
             <div className="lightbox-info">
               <span className="lightbox-title">{activeProjeto.title}</span>
-              <span className="lightbox-meta">
-                <span>{activeProjeto.category}</span>
-                {activeProjeto.year}
-              </span>
+              <span className="lightbox-meta"><span>{activeProjeto.category}</span>{activeProjeto.year}</span>
             </div>
             <div className="lightbox-controls">
               <button className="lightbox-btn" onClick={prevProject}>←</button>
@@ -413,27 +398,14 @@ export default function PortfolioClient({ projects, settings }: Props) {
               <button className="lightbox-btn lightbox-close" onClick={closeLightbox}>✕</button>
             </div>
           </div>
-
-          {/* Imagem */}
           <div className="lightbox-image-wrap">
-            <Image
-              src={activeProjeto.imageUrl}
-              alt={activeProjeto.title}
-              fill
-              style={{ objectFit: 'contain' }}
-              sizes="100vw"
-              priority
-            />
+            <Image src={activeProjeto.imageUrl} alt={activeProjeto.title} fill style={{ objectFit: 'contain' }} sizes="100vw" priority />
             <button className="lightbox-arrow left" onClick={prevProject}>←</button>
             <button className="lightbox-arrow right" onClick={nextProject}>→</button>
           </div>
-
-          {/* Tags */}
           {activeProjeto.tags?.length > 0 && (
             <div className="lightbox-tags" onClick={e => e.stopPropagation()}>
-              {activeProjeto.tags.map(t => (
-                <span key={t} className="lightbox-tag">{t}</span>
-              ))}
+              {activeProjeto.tags.map(t => <span key={t} className="lightbox-tag">{t}</span>)}
             </div>
           )}
         </div>
@@ -441,56 +413,57 @@ export default function PortfolioClient({ projects, settings }: Props) {
 
       {/* NAV */}
       <nav className={`nav ${navSolid ? 'solid' : ''}`}>
-        <a href="#" className="nav-logo">MELL<span>O</span></a>
+        <a href="#" className="nav-logo">ISAÍAS <span>MELO</span></a>
         <ul className="nav-links">
           <li><a href="#trabalhos">Trabalhos</a></li>
-          <li><a href="#sobre">Sobre</a></li>
+          <li><a href="#feedbacks">Feedbacks</a></li>
           <li><a href="#servicos">Serviços</a></li>
+          <li><a href="#contato">Contato</a></li>
         </ul>
-        <a href="#contato" className="nav-cta">Contato</a>
+        <a href="#formulario" className="nav-cta">Fale comigo</a>
       </nav>
 
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-left">
-          <div className="hero-number">M</div>
-          <p className={`hero-tag ${loaded ? 'in' : ''}`}>
-            <span className="hero-tag-line" />
-            {hero?.eyebrow || 'Fotógrafo & Designer — Brasil'}
-          </p>
-          <h1 className="hero-title">
-            <span className="hero-title-line">
-              <span className={`hero-title-word ${loaded ? 'in' : ''}`}>{hero?.titleLine1 || 'IMAGENS'}</span>
-            </span>
-            <span className="hero-title-line">
-              <span className={`hero-title-word ${loaded ? 'in' : ''}`}>{hero?.titleLine2 || 'QUE'}</span>
-            </span>
-            <span className="hero-title-line">
-              <span className={`hero-title-word ${loaded ? 'in' : ''}`}>
-                <span className="accent">{hero?.titleLine3 || 'FALAM.'}</span>
-              </span>
-            </span>
-          </h1>
-          <p className={`hero-desc ${loaded ? 'in' : ''}`}>{hero?.description}</p>
-          <div className={`hero-scroll-indicator ${loaded ? 'in' : ''}`}>
-            <div className="scroll-bar" />
-            <span>Role</span>
+      {/* APRESENTAÇÃO / ABOUT HERO */}
+      <section className="about-hero" id="sobre">
+        {/* Foto — substitua o src pelo caminho real da sua foto */}
+        <div className="about-hero-photo">
+          <div className="about-hero-photo-placeholder">
+            <div className="photo-placeholder-circle">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <span className="photo-placeholder-label">Sua foto aqui</span>
           </div>
+          {/* Descomente e ajuste quando tiver a foto:
+          <Image src="/foto-isaias.jpg" alt="Isaías Melo" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+          */}
+          <div className="about-hero-photo-overlay" />
+          <div className="about-hero-accent-block" />
         </div>
-        <div className="hero-right">
-          <div className="hero-right-bg" />
-          <div className="hero-right-content">
-            {[
-              { value: hero?.statExperience || '10+', label: 'Anos de experiência' },
-              { value: hero?.statProjects || '200+', label: 'Projetos entregues' },
-              { value: hero?.statClients || '48', label: 'Clientes ativos' },
-            ].map((s, i) => (
-              <div key={i} className={`hero-stat ${loaded ? 'in' : ''}`}>
-                <span className="stat-number">{s.value}</span>
-                <span className="stat-label">{s.label}</span>
-              </div>
-            ))}
-          </div>
+
+        <div className="about-hero-content">
+          <p className={`about-hero-eyebrow ${loaded ? 'in' : ''}`}>
+            <span className="about-hero-eyebrow-line" />
+            Diretor de Arte &amp; Fotógrafo — Sergipe, Brasil
+          </p>
+          <h1 className="about-hero-name">
+            ISAÍAS<br /><span className="accent">MELO</span>
+          </h1>
+          <p className="about-hero-role">Publicidade &amp; Propaganda · UFS · 7º Período</p>
+          <p className={`about-hero-text ${loaded ? 'in' : ''}`}>
+            Olá, meu nome é Isaías Melo. Tenho 24 anos e estou no 7º período de Publicidade e Propaganda na Universidade Federal de Sergipe.
+          </p>
+          <p className={`about-hero-text ${loaded ? 'in' : ''}`} style={{ transitionDelay: '0.65s' }}>
+            Sou apaixonado por arte, principalmente pela forma como ela se comunica com as pessoas. Atuo com construção de marca, criação de conteúdo para redes sociais e desenvolvimento de materiais impressos, sempre com foco em compreender o problema e transformá-lo em uma solução visual clara, objetiva e estratégica.
+          </p>
+          <p className={`about-hero-text ${loaded ? 'in' : ''}`} style={{ transitionDelay: '0.8s' }}>
+            Além disso, sou fotógrafo, movido pela paixão de eternizar momentos importantes e sinceros. Ao longo dessa trajetória, trabalhei desde a criação de uma arte para um microempreendedor até projetos para empresas com mais de 300 colaboradores. Acredito que tudo o que é feito com amor prevalece.
+          </p>
+          <div className="about-hero-divider" />
+          <a href="#trabalhos" className={`about-hero-cta ${loaded ? 'in' : ''}`}>
+            Ver meus trabalhos <span>↓</span>
+          </a>
         </div>
       </section>
 
@@ -499,11 +472,8 @@ export default function PortfolioClient({ projects, settings }: Props) {
         <div className="ticker-track">
           {Array(10).fill(null).map((_, i) => (
             <span key={i} className="ticker-item">
-              Fotografia <span className="ticker-sep">✦</span>
               Direção de Arte <span className="ticker-sep">✦</span>
-              Identidade Visual <span className="ticker-sep">✦</span>
-              Editorial <span className="ticker-sep">✦</span>
-              Motion <span className="ticker-sep">✦</span>
+              Fotografia <span className="ticker-sep">✦</span>
             </span>
           ))}
         </div>
@@ -518,67 +488,140 @@ export default function PortfolioClient({ projects, settings }: Props) {
           </div>
           <span className="work-count">{String(projects.length).padStart(2, '0')} PROJETOS</span>
         </div>
-        <div className="project-list">
-          {projects.length === 0 ? (
-            <p style={{ color: 'var(--muted)', padding: '40px 0' }}>Nenhum projeto publicado ainda.</p>
-          ) : projects.map((p, i) => (
-            <div
-              key={p._id}
-              className={`project-row ${!p.imageUrl ? 'no-image-row' : ''}`}
-              onClick={() => p.imageUrl && openLightbox(i)}
-              onMouseEnter={() => setHovered(p._id)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              <span className="project-row-num">{String(i + 1).padStart(2, '0')}</span>
-              <span className="project-row-title">{p.title}</span>
-              <span className="project-row-cat">{p.category}</span>
-              <div className="project-row-tags">{p.tags?.map(t => <span key={t}>{t}</span>)}</div>
-              {p.imageUrl && (
-                <div className="project-cover">
-                  <Image src={p.imageUrl} alt={p.title} fill style={{ objectFit: 'cover' }} />
-                </div>
-              )}
+
+        {categories.map(cat => {
+          const catProjects = projects.filter(p => p.category === cat)
+          return (
+            <div key={cat} className="category-block">
+              <div className="category-label">
+                {cat}
+                <span className="category-label-line" />
+                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-display)', fontSize: 13 }}>{String(catProjects.length).padStart(2,'0')}</span>
+              </div>
+              <div className="project-list">
+                {catProjects.map((p, i) => (
+                  <div
+                    key={p._id}
+                    className={`project-row ${!p.imageUrl ? 'no-image-row' : ''}`}
+                    onClick={() => p.imageUrl && openLightbox(projects.indexOf(p))}
+                    onMouseEnter={() => setHovered(p._id)}
+                    onMouseLeave={() => setHovered(null)}
+                  >
+                    <span className="project-row-num">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="project-row-title">{p.title}</span>
+                    <span className="project-row-cat">{p.category}</span>
+                    <div className="project-row-tags">{p.tags?.map(t => <span key={t}>{t}</span>)}</div>
+                    {p.imageUrl && (
+                      <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 180, overflow: 'hidden', opacity: hovered === p._id ? 1 : 0, transition: 'opacity 0.3s', zIndex: 2, pointerEvents: 'none' }}>
+                        <Image src={p.imageUrl} alt={p.title} fill style={{ objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          )
+        })}
       </section>
 
-      {/* ABOUT */}
-      <section className="about-section" id="sobre">
-        <div className="about-visual">
-          <div className="about-giant-letter">M</div>
-          <div className="about-accent-block" />
-          <span className="about-visual-label">Est. {about?.establishedYear || '2014'} — Brasil</span>
-        </div>
-        <div className="about-content">
-          <p className="about-eyebrow">Sobre Mello</p>
-          <h2 className="about-heading">
-            {about?.headingLine1 || 'OLHO'}<br />
-            <span className="line2">{about?.headingLine2 || 'TREINADO.'}</span><br />
-            {about?.headingLine3 || 'MÃO FIRME.'}
-          </h2>
-          <p className="about-body">{about?.paragraph1}</p>
-          <p className="about-body">{about?.paragraph2}</p>
-          <div className="about-divider" />
-          <div className="about-list">
-            {about?.skills?.map(s => <span key={s} className="about-list-item">{s}</span>)}
-          </div>
+      {/* FEEDBACKS */}
+      <section className="feedbacks-section" id="feedbacks">
+        <p className="work-label">O que dizem sobre mim</p>
+        <h2 className="work-title" style={{ marginTop: 8 }}>FEED<span className="work-title-alt">BACKS</span></h2>
+        <div className="feedbacks-grid">
+          {FEEDBACKS.map((fb, i) => (
+            <div key={i} className="feedback-card">
+              <div className="feedback-bar" />
+              <div className="feedback-stars">
+                {Array(fb.stars).fill(null).map((_, s) => <span key={s} className="feedback-star">★</span>)}
+              </div>
+              <p className="feedback-text">{fb.text}</p>
+              <div className="feedback-author">
+                <span className="feedback-name">{fb.name}</span>
+                <span className="feedback-role">{fb.role}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* SERVICES */}
-      <section className="services-section" id="servicos">
-        <p className="work-label">O que eu faço</p>
-        <h2 className="work-title" style={{ marginTop: 8 }}>SERVI<span className="work-title-alt">ÇOS</span></h2>
-        <div className="services-grid">
-          {services?.map((s, i) => (
-            <div key={i} className="service-card">
-              <div className="service-num">{String(i + 1).padStart(2, '0')}</div>
-              <h3 className="service-name">{s.name}</h3>
-              <p className="service-desc">{s.description}</p>
-              <div className="service-bar" />
-            </div>
-          ))}
+      {services && services.length > 0 && (
+        <section className="services-section" id="servicos">
+          <p className="work-label">O que eu faço</p>
+          <h2 className="work-title" style={{ marginTop: 8 }}>SERVI<span className="work-title-alt">ÇOS</span></h2>
+          <div className="services-grid">
+            {services.map((s, i) => (
+              <div key={i} className="service-card">
+                <div className="service-num">{String(i + 1).padStart(2, '0')}</div>
+                <h3 className="service-name">{s.name}</h3>
+                <p className="service-desc">{s.description}</p>
+                <div className="service-bar" />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FORMULÁRIO DE CAPTAÇÃO */}
+      <section className="form-section" id="formulario">
+        <p className="work-label">Deixe seu contato</p>
+        <div className="form-grid">
+          <div className="form-left">
+            <h2 className="form-left-title">
+              VAMOS<br />
+              <span className="inv">CRIAR</span><br />
+              JUNTOS?
+            </h2>
+            <p className="form-left-desc">
+              Preencha o formulário ao lado com seu nome, telefone e e-mail. Entrarei em contato para entender o seu projeto e apresentar a melhor solução para a sua marca.
+            </p>
+          </div>
+          <div className="form-right">
+            {formSent ? (
+              <div className="form-success">
+                <span className="form-success-icon">✓</span>
+                <h3 className="form-success-title">MENSAGEM RECEBIDA</h3>
+                <p className="form-success-text">Obrigado pelo contato! Em breve entrarei em contato com você.</p>
+              </div>
+            ) : (
+              <>
+                <div className="form-field">
+                  <label className="form-label">Nome completo</label>
+                  <input
+                    className="form-input"
+                    type="text"
+                    placeholder="Seu nome"
+                    value={formData.nome}
+                    onChange={e => setFormData(f => ({ ...f, nome: e.target.value }))}
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Telefone / WhatsApp</label>
+                  <input
+                    className="form-input"
+                    type="tel"
+                    placeholder="(79) 9 0000-0000"
+                    value={formData.telefone}
+                    onChange={e => setFormData(f => ({ ...f, telefone: e.target.value }))}
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">E-mail</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={formData.email}
+                    onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
+                  />
+                </div>
+                <button className="form-submit" onClick={handleFormSubmit}>
+                  Enviar <span>→</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </section>
 
@@ -588,19 +631,33 @@ export default function PortfolioClient({ projects, settings }: Props) {
         <div className="contact-inner">
           <span className="contact-label">Vamos trabalhar juntos</span>
           <h2 className="contact-heading">DIGA<br /><span className="inv">OLÁ.</span></h2>
-          <a href={`mailto:${contact?.email}`} className="contact-email">{contact?.email}</a>
-          <a href="https://wa.me/5579981149177" target="_blank" rel="noopener noreferrer" className="contact-btn">Enviar mensagem<span>→</span></a>
+          <a href={`mailto:${contact?.email || 'isaias@email.com'}`} className="contact-email">
+            {contact?.email || 'isaias@email.com'}
+          </a>
+          <a href="https://wa.me/5579981149177" target="_blank" rel="noopener noreferrer" className="contact-btn">
+            Enviar mensagem no WhatsApp <span>→</span>
+          </a>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer>
-        <a href="#" className="footer-logo">MELL<span>O</span></a>
+        <a href="#" className="footer-logo">ISAÍAS <span>MELO</span></a>
         <span className="footer-copy">© {new Date().getFullYear()} — Todos os direitos reservados</span>
         <div className="footer-links">
-          {contact?.instagramUrl && <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer">Instagram</a>}
-          {contact?.behanceUrl && <a href={contact.behanceUrl} target="_blank" rel="noopener noreferrer">Behance</a>}
-          {contact?.linkedinUrl && <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn</a>}
+          {contact?.instagramUrl
+            ? <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer">Instagram</a>
+            : <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
+          }
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">TikTok</a>
+          {contact?.behanceUrl
+            ? <a href={contact.behanceUrl} target="_blank" rel="noopener noreferrer">Behance</a>
+            : <a href="https://behance.net" target="_blank" rel="noopener noreferrer">Behance</a>
+          }
+          {contact?.linkedinUrl
+            ? <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            : <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          }
         </div>
       </footer>
     </>
