@@ -588,8 +588,8 @@ export default function PortfolioClient({ projects, settings }: Props) {
         <div className="contact-inner">
           <span className="contact-label">Vamos trabalhar juntos</span>
           <h2 className="contact-heading">DIGA<br /><span className="inv">OLÁ.</span></h2>
-          <a href="https://wa.me/5579981149177" target="_blank" rel="noopener noreferrer" className="contact-email">+55 79 98114-9177</a>
-<a href="https://wa.me/5579981149177" target="_blank" rel="noopener noreferrer" className="contact-btn">Enviar mensagem <span>→</span></a>
+          <a href={`mailto:${contact?.email}`} className="contact-email">{contact?.email}</a>
+          <a href="https://wa.me/5579981149177" target="_blank" rel="noopener noreferrer" className="contact-btn">Enviar mensagem<span>→</span></a>
         </div>
       </section>
 
