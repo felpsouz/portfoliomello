@@ -39,6 +39,16 @@ const defaultSettings = {
   },
 }
 
+// Converte imagem do Sanity para URL com segurança — retorna null se asset for inválido
+function safeImageUrl(image: any): string | null {
+  if (!image || !image.asset || !image.asset._ref) return null
+  try {
+    return urlFor(image).width(800).height(600).auto('format').url()
+  } catch {
+    return null
+  }
+}
+
 export default async function Home() {
   let projects: any[] = []
   let settings: any = defaultSettings
@@ -57,9 +67,13 @@ export default async function Home() {
 
   const projectsWithImages = projects.map((p) => ({
     ...p,
-    imageUrl: p.coverImage
-      ? urlFor(p.coverImage).width(800).height(600).auto('format').url()
-      : null,
+    imageUrl: safeImageUrl(p.coverImage),
+    // Galeria de imagens do projeto (campo 'images' no schema)
+    images: Array.isArray(p.images)
+      ? p.images
+          .map((img: any) => safeImageUrl(img))
+          .filter(Boolean)
+      : [],
   }))
 
   return <PortfolioClient projects={projectsWithImages} settings={settings} />

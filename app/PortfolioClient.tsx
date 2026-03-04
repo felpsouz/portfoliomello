@@ -11,6 +11,7 @@ type ProjectWithImage = {
   year: string
   tags: string[]
   imageUrl: string | null
+  images?: string[] // todas as fotos do projeto — adicionar no schema Sanity
 }
 
 type Props = {
@@ -60,13 +61,12 @@ const PROJECTS: ProjectWithImage[] = [
   { _id: 'fo7', title: 'Documental — Rua, Skate, Batalha de Rima, Natureza', category: 'Fotografia', year: '2024', tags: ['Foto', 'Documental'], imageUrl: null },
 ]
 
-const FEEDBACKS = [
-  { name: 'Rafael Oliveira', role: 'CEO — Ravello Pisos', text: 'O Isaías transformou completamente a nossa presença digital. Cada peça entregue tem identidade e propósito. Recomendo sem hesitar.', stars: 5 },
-  { name: 'Dra. Carla Mendes', role: 'Psicóloga', text: 'Meu ensaio fotográfico foi incrível. Ele soube captar exatamente a essência que eu queria transmitir para meus pacientes. Profissional e sensível.', stars: 5 },
-  { name: 'Will Cosméticos', role: 'Fundadora — Will Cosméticos', text: 'A identidade visual que o Isaías criou para a minha marca ficou perfeita. Ele entendeu o meu negócio e traduziu em design de verdade.', stars: 5 },
-  { name: 'Pastor Jonatas', role: 'Igreja Unida', text: 'Toda nossa comunicação visual melhorou muito depois que começamos a trabalhar com o Isaías. Material de qualidade, entrega no prazo e muita criatividade.', stars: 5 },
-  { name: 'Diego França', role: 'Barbeiro', text: 'As artes para o Instagram do meu salão ficaram profissionais de verdade. Meus clientes sempre comentam. Parceria incrível!', stars: 5 },
-  { name: 'Café com Case', role: 'Organização de Eventos', text: 'Ele foi responsável por toda identidade do nosso evento — desde o backdrop até a fotografia. Resultado impecável e muito acima do esperado.', stars: 5 },
+const DEFAULT_SERVICES = [
+  { name: 'Identidade Visual', description: 'Criação de marca completa: logo, paleta, tipografia e manual de identidade visual para posicionar sua empresa com consistência e personalidade.' },
+  { name: 'Design para Social Media', description: 'Criação de peças visuais para Instagram, Facebook e outras plataformas, com linguagem visual alinhada à identidade da sua marca.' },
+  { name: 'Calendário Editorial', description: 'Planejamento estratégico de conteúdo com datas, pautas e formatos definidos para manter sua marca sempre presente e relevante.' },
+  { name: 'Impressos e Mídia OOH', description: 'Desenvolvimento de materiais impressos e comunicação visual para o ambiente físico: banners, cartões, embalagens, adesivos, vestuário e muito mais.' },
+  { name: 'Fotografia', description: 'Ensaios empresariais, institucionais, eventos e fotografia documental. Imagens que comunicam, engajam e eternizam momentos importantes.' },
 ]
 
 export default function PortfolioClient({ projects: _projects, settings }: Props) {
@@ -75,17 +75,41 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
   const [loaded, setLoaded] = useState(false)
   const [hovered, setHovered] = useState<string | null>(null)
   const [scrollY, setScrollY] = useState(0)
-  const [lightbox, setLightbox] = useState<number | null>(null)
+  const [lightbox, setLightbox] = useState<{ images: { url: string; title: string; category: string; year: string; tags: string[] }[]; index: number } | null>(null)
   const [formData, setFormData] = useState({ nome: '', telefone: '', email: '' })
   const [formSent, setFormSent] = useState(false)
   const touchStartX = useRef<number>(0)
   const touchStartY = useRef<number>(0)
 
-  const { heroSection: hero, aboutSection: about, services, contactSection: contact } = settings || {}
+  const { services, contactSection: contact } = settings || {}
+  const activeServices = services?.length ? services : DEFAULT_SERVICES
 
-  const openLightbox = (index: number) => {
-    if (!projects[index]?.imageUrl) return
-    setLightbox(index)
+  // Imagens da galeria de feedbacks vindas do Sanity
+  // Adicionar no schema: feedbackImages array of { url: string, alt: string }
+  const feedbackImages: { url: string; alt?: string }[] = (settings as any)?.feedbackImages || []
+
+  // Abre lightbox com todas as fotos do projeto
+  const openProjectLightbox = (project: ProjectWithImage) => {
+    const imgs: { url: string; title: string; category: string; year: string; tags: string[] }[] = []
+    if (project.images && project.images.length > 0) {
+      project.images.forEach((url, i) => {
+        imgs.push({ url, title: `${project.title} — ${i + 1}`, category: project.category, year: project.year, tags: project.tags })
+      })
+    } else if (project.imageUrl) {
+      imgs.push({ url: project.imageUrl, title: project.title, category: project.category, year: project.year, tags: project.tags })
+    }
+    if (imgs.length === 0) return
+    setLightbox({ images: imgs, index: 0 })
+    document.body.style.overflow = 'hidden'
+  }
+
+  // Abre lightbox para galeria de feedbacks
+  const openFeedbackLightbox = (index: number) => {
+    if (!feedbackImages.length) return
+    setLightbox({
+      images: feedbackImages.map((img, i) => ({ url: img.url, title: img.alt || `Imagem ${i + 1}`, category: '', year: '', tags: [] })),
+      index,
+    })
     document.body.style.overflow = 'hidden'
   }
 
@@ -94,31 +118,20 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
     document.body.style.overflow = ''
   }
 
-  const prevProject = (e?: React.MouseEvent) => {
+  const prevLightbox = (e?: React.MouseEvent) => {
     e?.stopPropagation()
-    if (lightbox === null) return
-    for (let i = lightbox - 1; i >= 0; i--) {
-      if (projects[i].imageUrl) { setLightbox(i); return }
-    }
-    for (let i = projects.length - 1; i > lightbox; i--) {
-      if (projects[i].imageUrl) { setLightbox(i); return }
-    }
+    if (!lightbox) return
+    setLightbox({ ...lightbox, index: (lightbox.index - 1 + lightbox.images.length) % lightbox.images.length })
   }
 
-  const nextProject = (e?: React.MouseEvent) => {
+  const nextLightbox = (e?: React.MouseEvent) => {
     e?.stopPropagation()
-    if (lightbox === null) return
-    for (let i = lightbox + 1; i < projects.length; i++) {
-      if (projects[i].imageUrl) { setLightbox(i); return }
-    }
-    for (let i = 0; i < lightbox; i++) {
-      if (projects[i].imageUrl) { setLightbox(i); return }
-    }
+    if (!lightbox) return
+    setLightbox({ ...lightbox, index: (lightbox.index + 1) % lightbox.images.length })
   }
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Aqui você pode integrar com seu backend/CRM/email
     console.log('Lead capturado:', formData)
     setFormSent(true)
     setFormData({ nome: '', telefone: '', email: '' })
@@ -133,23 +146,17 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (lightbox === null) return
+      if (!lightbox) return
       if (e.key === 'Escape') closeLightbox()
-      if (e.key === 'ArrowRight') nextProject()
-      if (e.key === 'ArrowLeft') prevProject()
+      if (e.key === 'ArrowRight') nextLightbox()
+      if (e.key === 'ArrowLeft') prevLightbox()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [lightbox])
 
   const navSolid = scrollY > 80
-  const activeProjeto = lightbox !== null ? projects[lightbox] : null
-  const totalComImagem = projects.filter(p => p.imageUrl).length
-  const indexComImagem = lightbox !== null
-    ? projects.slice(0, lightbox + 1).filter(p => p.imageUrl).length
-    : 0
-
-  // Group projects by category
+  const activeImg = lightbox ? lightbox.images[lightbox.index] : null
   const categories = Array.from(new Set(projects.map(p => p.category)))
 
   return (
@@ -242,7 +249,12 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .project-row-tags { display: flex; gap: 6px; position: relative; z-index: 1; }
         .project-row-tags span { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; transition: all 0.2s; }
         .no-image-row { cursor: default; }
-        .no-image-row:hover::before { transform: scaleX(0); }
+        .no-image-row::before { display: none; }
+        .no-image-row:hover { padding-left: 0; }
+        .no-image-row:hover .project-row-num,
+        .no-image-row:hover .project-row-title,
+        .no-image-row:hover .project-row-cat { color: inherit !important; }
+        .no-image-row:hover .project-row-tags span { background: transparent !important; color: var(--muted) !important; border-color: var(--border) !important; }
 
         /* LIGHTBOX */
         .lightbox-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; animation: lbIn 0.3s ease; }
@@ -266,20 +278,18 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .lightbox-tags { display: flex; gap: 8px; flex-wrap: wrap; padding: 16px 32px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
         .lightbox-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--border); color: var(--muted); }
 
-        /* FEEDBACKS */
+        /* FEEDBACKS — GALERIA DE IMAGENS */
         .feedbacks-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
-        .feedbacks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
-        .feedback-card { background: var(--surface); padding: 40px; position: relative; overflow: hidden; transition: background 0.3s; display: flex; flex-direction: column; gap: 20px; }
-        .feedback-card:hover { background: var(--bg); }
-        .feedback-card:hover .feedback-bar { width: 100%; }
-        .feedback-bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
-        .feedback-stars { display: flex; gap: 4px; }
-        .feedback-star { color: var(--accent2); font-size: 14px; }
-        .feedback-text { font-size: 14px; font-weight: 200; line-height: 1.8; color: #aaa; font-style: italic; flex: 1; }
-        .feedback-text::before { content: '"'; font-family: var(--font-display); font-size: 48px; line-height: 0; color: var(--accent); opacity: 0.3; display: block; margin-bottom: 8px; }
-        .feedback-author { display: flex; flex-direction: column; gap: 4px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .feedback-name { font-family: var(--font-display); font-size: 18px; letter-spacing: 0.06em; color: var(--text); }
-        .feedback-role { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+        .feedbacks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; margin-top: 80px; }
+        .feedback-img-item { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--bg); cursor: pointer; }
+        .feedback-img-item img { transition: transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+        .feedback-img-item:hover img { transform: scale(1.06); }
+        .feedback-img-overlay { position: absolute; inset: 0; background: rgba(255,61,0,0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2; }
+        .feedback-img-item:hover .feedback-img-overlay { opacity: 1; }
+        .feedback-img-icon { font-family: var(--font-display); font-size: 36px; color: #fff; letter-spacing: 0.05em; }
+        .feedback-img-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 100%; border: 1px dashed var(--border); }
+        .feedback-img-placeholder-num { font-family: var(--font-display); font-size: 56px; color: var(--border); line-height: 1; }
+        .feedback-img-placeholder-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 
         /* CONTACT FORM */
         .form-section { padding: 120px 48px; border-top: 1px solid var(--border); }
@@ -335,20 +345,26 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .service-name { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; margin-bottom: 16px; }
         .service-desc { font-size: 13px; font-weight: 200; line-height: 1.8; color: #666; }
 
+        /* RESPONSIVE */
         @media (max-width: 900px) {
           .nav { padding: 20px 24px; }
           .nav.solid { padding: 14px 24px; }
           .nav-links, .nav-cta { display: none; }
-          .about-hero { grid-template-columns: 1fr; min-height: auto; }
-          .about-hero-photo { display: none; }
-          .about-hero-content { padding: 110px 24px 80px; min-height: 100vh; }
+
+          /* FOTO MOBILE — banner no topo em vez de display:none */
+          .about-hero { grid-template-columns: 1fr; grid-template-rows: 60vw 1fr; min-height: auto; }
+          .about-hero-photo { display: block; height: 60vw; position: relative; }
+          .about-hero-photo-overlay { background: linear-gradient(to bottom, transparent 50%, var(--bg) 100%); }
+          .about-hero-accent-block { width: 100%; height: 4px; top: 0; left: 0; bottom: auto; }
+          .about-hero-content { padding: 32px 24px 80px; min-height: auto; }
+
           .work-section { padding: 80px 24px; }
           .work-header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 48px; }
           .project-row { grid-template-columns: 48px 1fr; gap: 12px; padding: 18px 0; }
           .project-row-cat, .project-row-tags { display: none; }
           .project-row-title { font-size: clamp(18px, 4.5vw, 28px); white-space: normal; }
           .feedbacks-section { padding: 80px 24px; }
-          .feedbacks-grid { grid-template-columns: 1fr; }
+          .feedbacks-grid { grid-template-columns: repeat(2, 1fr); }
           .form-section { padding: 80px 24px; }
           .form-grid { grid-template-columns: 1fr; gap: 40px; }
           .services-section { padding: 80px 24px; }
@@ -371,11 +387,12 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           .contact-heading { font-size: clamp(48px, 13vw, 80px); }
           .contact-email { font-size: clamp(16px, 4.5vw, 24px); word-break: break-all; }
           .form-left-title { font-size: clamp(36px, 10vw, 56px); }
+          .feedbacks-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
       {/* LIGHTBOX */}
-      {lightbox !== null && activeProjeto && activeProjeto.imageUrl && (
+      {lightbox !== null && activeImg && (
         <div
           className="lightbox-overlay"
           onClick={closeLightbox}
@@ -383,29 +400,35 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           onTouchEnd={(e) => {
             const dx = e.changedTouches[0].clientX - touchStartX.current
             const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
-            if (Math.abs(dx) > 50 && dy < 80) { if (dx < 0) nextProject(); else prevProject() }
+            if (Math.abs(dx) > 50 && dy < 80) { if (dx < 0) nextLightbox(); else prevLightbox() }
           }}
         >
           <div className="lightbox-header" onClick={e => e.stopPropagation()}>
             <div className="lightbox-info">
-              <span className="lightbox-title">{activeProjeto.title}</span>
-              <span className="lightbox-meta"><span>{activeProjeto.category}</span>{activeProjeto.year}</span>
+              <span className="lightbox-title">{activeImg.title}</span>
+              {activeImg.category && (
+                <span className="lightbox-meta"><span>{activeImg.category}</span>{activeImg.year}</span>
+              )}
             </div>
             <div className="lightbox-controls">
-              <button className="lightbox-btn" onClick={prevProject}>←</button>
-              <span className="lightbox-counter">{indexComImagem} / {totalComImagem}</span>
-              <button className="lightbox-btn" onClick={nextProject}>→</button>
+              <button className="lightbox-btn" onClick={prevLightbox}>←</button>
+              <span className="lightbox-counter">{lightbox.index + 1} / {lightbox.images.length}</span>
+              <button className="lightbox-btn" onClick={nextLightbox}>→</button>
               <button className="lightbox-btn lightbox-close" onClick={closeLightbox}>✕</button>
             </div>
           </div>
           <div className="lightbox-image-wrap">
-            <Image src={activeProjeto.imageUrl} alt={activeProjeto.title} fill style={{ objectFit: 'contain' }} sizes="100vw" priority />
-            <button className="lightbox-arrow left" onClick={prevProject}>←</button>
-            <button className="lightbox-arrow right" onClick={nextProject}>→</button>
+            <Image src={activeImg.url} alt={activeImg.title} fill style={{ objectFit: 'contain' }} sizes="100vw" priority />
+            {lightbox.images.length > 1 && (
+              <>
+                <button className="lightbox-arrow left" onClick={prevLightbox}>←</button>
+                <button className="lightbox-arrow right" onClick={nextLightbox}>→</button>
+              </>
+            )}
           </div>
-          {activeProjeto.tags?.length > 0 && (
+          {activeImg.tags && activeImg.tags.length > 0 && (
             <div className="lightbox-tags" onClick={e => e.stopPropagation()}>
-              {activeProjeto.tags.map(t => <span key={t} className="lightbox-tag">{t}</span>)}
+              {activeImg.tags.map(t => <span key={t} className="lightbox-tag">{t}</span>)}
             </div>
           )}
         </div>
@@ -425,7 +448,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
       {/* APRESENTAÇÃO / ABOUT HERO */}
       <section className="about-hero" id="sobre">
-        {/* Foto — substitua o src pelo caminho real da sua foto */}
         <div className="about-hero-photo">
           <div className="about-hero-photo-placeholder">
             <div className="photo-placeholder-circle">
@@ -435,9 +457,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
             </div>
             <span className="photo-placeholder-label">Sua foto aqui</span>
           </div>
-          {
           <Image src="/mello.jpeg" alt="Isaías Melo" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
-          }
           <div className="about-hero-photo-overlay" />
           <div className="about-hero-accent-block" />
         </div>
@@ -479,7 +499,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         </div>
       </div>
 
-      {/* WORK */}
+      {/* WORK — lista original preservada com hover + preview */}
       <section className="work-section" id="trabalhos">
         <div className="work-header">
           <div>
@@ -496,72 +516,79 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               <div className="category-label">
                 {cat}
                 <span className="category-label-line" />
-                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-display)', fontSize: 13 }}>{String(catProjects.length).padStart(2,'0')}</span>
+                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-display)', fontSize: 13 }}>{String(catProjects.length).padStart(2, '0')}</span>
               </div>
               <div className="project-list">
-                {catProjects.map((p, i) => (
-                  <div
-                    key={p._id}
-                    className={`project-row ${!p.imageUrl ? 'no-image-row' : ''}`}
-                    onClick={() => p.imageUrl && openLightbox(projects.indexOf(p))}
-                    onMouseEnter={() => setHovered(p._id)}
-                    onMouseLeave={() => setHovered(null)}
-                  >
-                    <span className="project-row-num">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="project-row-title">{p.title}</span>
-                    <span className="project-row-cat">{p.category}</span>
-                    <div className="project-row-tags">{p.tags?.map(t => <span key={t}>{t}</span>)}</div>
-                    {p.imageUrl && (
-                      <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 180, overflow: 'hidden', opacity: hovered === p._id ? 1 : 0, transition: 'opacity 0.3s', zIndex: 2, pointerEvents: 'none' }}>
-                        <Image src={p.imageUrl} alt={p.title} fill style={{ objectFit: 'cover' }} />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {catProjects.map((p, i) => {
+                  const hasMedia = !!(p.imageUrl || (p.images && p.images.length > 0))
+                  const previewUrl = p.imageUrl || (p.images && p.images[0]) || null
+                  return (
+                    <div
+                      key={p._id}
+                      className={`project-row ${!hasMedia ? 'no-image-row' : ''}`}
+                      onClick={() => hasMedia && openProjectLightbox(p)}
+                      onMouseEnter={() => setHovered(p._id)}
+                      onMouseLeave={() => setHovered(null)}
+                    >
+                      <span className="project-row-num">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="project-row-title">{p.title}</span>
+                      <span className="project-row-cat">{p.category}</span>
+                      <div className="project-row-tags">{p.tags?.map(t => <span key={t}>{t}</span>)}</div>
+                      {previewUrl && (
+                        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 180, overflow: 'hidden', opacity: hovered === p._id ? 1 : 0, transition: 'opacity 0.3s', zIndex: 2, pointerEvents: 'none' }}>
+                          <Image src={previewUrl} alt={p.title} fill style={{ objectFit: 'cover' }} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )
         })}
       </section>
 
-      {/* FEEDBACKS */}
+      {/* FEEDBACKS — galeria de imagens vindas do Sanity */}
       <section className="feedbacks-section" id="feedbacks">
         <p className="work-label">O que dizem sobre mim</p>
         <h2 className="work-title" style={{ marginTop: 8 }}>FEED<span className="work-title-alt">BACKS</span></h2>
         <div className="feedbacks-grid">
-          {FEEDBACKS.map((fb, i) => (
-            <div key={i} className="feedback-card">
-              <div className="feedback-bar" />
-              <div className="feedback-stars">
-                {Array(fb.stars).fill(null).map((_, s) => <span key={s} className="feedback-star">★</span>)}
-              </div>
-              <p className="feedback-text">{fb.text}</p>
-              <div className="feedback-author">
-                <span className="feedback-name">{fb.name}</span>
-                <span className="feedback-role">{fb.role}</span>
-              </div>
-            </div>
-          ))}
+          {feedbackImages.length > 0
+            ? feedbackImages.map((img, i) => (
+                <div key={i} className="feedback-img-item" onClick={() => openFeedbackLightbox(i)}>
+                  <Image src={img.url} alt={img.alt || `Feedback ${i + 1}`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 600px) 50vw, 33vw" />
+                  <div className="feedback-img-overlay">
+                    <span className="feedback-img-icon">+</span>
+                  </div>
+                </div>
+              ))
+            : [1, 2, 3, 4, 5, 6].map(n => (
+                <div key={n} className="feedback-img-item">
+                  <div className="feedback-img-placeholder">
+                    <span className="feedback-img-placeholder-num">{String(n).padStart(2, '0')}</span>
+                    <span className="feedback-img-placeholder-label">Imagem em breve</span>
+                  </div>
+                </div>
+              ))
+          }
         </div>
       </section>
 
       {/* SERVICES */}
-      {services && services.length > 0 && (
-        <section className="services-section" id="servicos">
-          <p className="work-label">O que eu faço</p>
-          <h2 className="work-title" style={{ marginTop: 8 }}>SERVI<span className="work-title-alt">ÇOS</span></h2>
-          <div className="services-grid">
-            {services.map((s, i) => (
-              <div key={i} className="service-card">
-                <div className="service-num">{String(i + 1).padStart(2, '0')}</div>
-                <h3 className="service-name">{s.name}</h3>
-                <p className="service-desc">{s.description}</p>
-                <div className="service-bar" />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <section className="services-section" id="servicos">
+        <p className="work-label">O que eu faço</p>
+        <h2 className="work-title" style={{ marginTop: 8 }}>SERVI<span className="work-title-alt">ÇOS</span></h2>
+        <div className="services-grid">
+          {activeServices.map((s, i) => (
+            <div key={i} className="service-card">
+              <div className="service-num">{String(i + 1).padStart(2, '0')}</div>
+              <h3 className="service-name">{s.name}</h3>
+              <p className="service-desc">{s.description}</p>
+              <div className="service-bar" />
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* FORMULÁRIO DE CAPTAÇÃO */}
       <section className="form-section" id="formulario">
@@ -588,33 +615,15 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               <>
                 <div className="form-field">
                   <label className="form-label">Nome completo</label>
-                  <input
-                    className="form-input"
-                    type="text"
-                    placeholder="Seu nome"
-                    value={formData.nome}
-                    onChange={e => setFormData(f => ({ ...f, nome: e.target.value }))}
-                  />
+                  <input className="form-input" type="text" placeholder="Seu nome" value={formData.nome} onChange={e => setFormData(f => ({ ...f, nome: e.target.value }))} />
                 </div>
                 <div className="form-field">
                   <label className="form-label">Telefone / WhatsApp</label>
-                  <input
-                    className="form-input"
-                    type="tel"
-                    placeholder="(79) 9 0000-0000"
-                    value={formData.telefone}
-                    onChange={e => setFormData(f => ({ ...f, telefone: e.target.value }))}
-                  />
+                  <input className="form-input" type="tel" placeholder="(79) 9 0000-0000" value={formData.telefone} onChange={e => setFormData(f => ({ ...f, telefone: e.target.value }))} />
                 </div>
                 <div className="form-field">
                   <label className="form-label">E-mail</label>
-                  <input
-                    className="form-input"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
-                  />
+                  <input className="form-input" type="email" placeholder="seu@email.com" value={formData.email} onChange={e => setFormData(f => ({ ...f, email: e.target.value }))} />
                 </div>
                 <button className="form-submit" onClick={handleFormSubmit}>
                   Enviar <span>→</span>
@@ -631,8 +640,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         <div className="contact-inner">
           <span className="contact-label">Vamos trabalhar juntos</span>
           <h2 className="contact-heading">DIGA<br /><span className="inv">OLÁ.</span></h2>
-          <a href={`mailto:${contact?.email || 'isaias@email.com'}`} className="contact-email">
-            {contact?.email || 'isaias@email.com'}
+          <a href="mailto:isaiasmellomkt@gmail.com" className="contact-email">
+            isaiasmellomkt@gmail.com
           </a>
           <a href="https://wa.me/5579981149177" target="_blank" rel="noopener noreferrer" className="contact-btn">
             Enviar mensagem no WhatsApp <span>→</span>
@@ -645,19 +654,10 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         <a href="#" className="footer-logo">ISAÍAS <span>MELO</span></a>
         <span className="footer-copy">© {new Date().getFullYear()} — Todos os direitos reservados</span>
         <div className="footer-links">
-          {contact?.instagramUrl
-            ? <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer">Instagram</a>
-            : <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-          }
-          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">TikTok</a>
-          {contact?.behanceUrl
-            ? <a href={contact.behanceUrl} target="_blank" rel="noopener noreferrer">Behance</a>
-            : <a href="https://behance.net" target="_blank" rel="noopener noreferrer">Behance</a>
-          }
-          {contact?.linkedinUrl
-            ? <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            : <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          }
+          <a href="https://www.instagram.com/mellorgb/" target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a href="https://www.tiktok.com/@mellorgb?lang=pt-BR" target="_blank" rel="noopener noreferrer">TikTok</a>
+          <a href="https://www.behance.net/isaiasmello" target="_blank" rel="noopener noreferrer">Behance</a>
+          <a href="https://www.linkedin.com/in/isa%C3%ADas-melo-52b8a53b3/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         </div>
       </footer>
     </>
