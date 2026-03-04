@@ -435,9 +435,9 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
             </div>
             <span className="photo-placeholder-label">Sua foto aqui</span>
           </div>
-          {/* Descomente e ajuste quando tiver a foto:
-          <Image src="/foto-isaias.jpg" alt="Isaías Melo" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
-          */}
+          {
+          <Image src="/mello.jpeg" alt="Isaías Melo" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+          }
           <div className="about-hero-photo-overlay" />
           <div className="about-hero-accent-block" />
         </div>
