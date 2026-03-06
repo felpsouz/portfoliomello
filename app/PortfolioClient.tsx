@@ -190,12 +190,12 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-          --bg: #0d0d0d;
+          --bg: #171717;
           --surface: #141414;
           --border: #2a2a2a;
           --text: #f0ede6;
           --muted: #555;
-          --accent: #FF3D00;
+          --accent: #FEFCED;
           --accent2: #FFD600;
           --font-display: 'Bebas Neue', sans-serif;
           --font-body: 'Epilogue', sans-serif;
@@ -299,7 +299,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .feedback-bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); z-index: 3; }
         .feedback-img-inner { position: relative; width: 100%; background: #0a0a0a; }
         .feedback-img-inner img { width: 100% !important; height: auto !important; position: relative !important; display: block; transition: transform 0.5s cubic-bezier(0.16,1,0.3,1); }
-        .feedback-img-overlay { position: absolute; inset: 0; background: rgba(255,61,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2; }
+        .feedback-img-overlay { position: absolute; inset: 0; background: #FEFCED,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2; }
         .feedback-img-item:hover .feedback-img-overlay { opacity: 1; }
         .feedback-img-icon { font-family: var(--font-display); font-size: 36px; color: #fff; letter-spacing: 0.05em; }
         .feedback-img-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; aspect-ratio: 4/3; }
