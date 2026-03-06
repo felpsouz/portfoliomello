@@ -53,40 +53,11 @@ function GrainOverlay() {
 }
 
 const PROJECTS: ProjectWithImage[] = [
-  { _id: 'iv1', title: 'Will Cosméticos e Perfumaria', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'Logo', 'Visual'], imageUrl: null },
-  { _id: 'iv2', title: 'Instituto Caridade Rosa', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'ONG'], imageUrl: null },
-  { _id: 'iv3', title: 'Magnata Estética em Vidros', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'Logo'], imageUrl: null },
-  { _id: 'iv4', title: 'Doceria ao Quadrado', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Food'], imageUrl: null },
-  { _id: 'iv5', title: 'Restaurante Tudo Gostoso', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Food'], imageUrl: null },
-  { _id: 'iv6', title: 'Auto Elétrica AC Mecânica', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Auto'], imageUrl: null },
-  { _id: 'sm1', title: 'Ravello Pisos e Revestimentos', category: 'Social Media', year: '2023', tags: ['Social', 'Conteúdo'], imageUrl: null },
-  { _id: 'sm2', title: 'Instituto Caridade Rosa', category: 'Social Media', year: '2023', tags: ['Social', 'ONG'], imageUrl: null },
-  { _id: 'sm3', title: 'Diego França Barbeiro', category: 'Social Media', year: '2024', tags: ['Social', 'Barbearia'], imageUrl: null },
-  { _id: 'sm4', title: 'Loctal Máquinas e Serviços', category: 'Social Media', year: '2024', tags: ['Social', 'B2B'], imageUrl: null },
-  { _id: 'sm5', title: 'Igreja Unida', category: 'Social Media', year: '2024', tags: ['Social', 'Institucional'], imageUrl: null },
-  { _id: 'im1', title: 'Convites — Chá de Fralda, Empresarial, Aniversário', category: 'Impressos / OOH', year: '2023', tags: ['Impresso', 'Convite'], imageUrl: null },
-  { _id: 'im2', title: 'Adesivos — Café com Case, Assistente Virtual', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Adesivo'], imageUrl: null },
-  { _id: 'im3', title: 'Banner — Ravello, Igreja Unida, Pintor', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Banner'], imageUrl: null },
-  { _id: 'im4', title: 'Cartão de Visita — Patrícia Modas', category: 'Impressos / OOH', year: '2023', tags: ['Impresso', 'Cartão'], imageUrl: null },
-  { _id: 'im5', title: 'Backdrop — Café com Case', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Evento'], imageUrl: null },
-  { _id: 'im6', title: 'Espaço Instagramável — Café com Case', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Evento'], imageUrl: null },
-  { _id: 'im7', title: 'Vestuário — Café com Case, Magnata, e outros', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Vestuário'], imageUrl: null },
-  { _id: 'im8', title: 'Embalagem — Will Cosméticos, Doceria ao Quadrado', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Embalagem'], imageUrl: null },
-  { _id: 'fo1', title: 'Formaturas — ABC e Graduação', category: 'Fotografia', year: '2023', tags: ['Foto', 'Evento'], imageUrl: null },
-  { _id: 'fo2', title: 'Ensaios Externos — Psicólogo, 3ª Idade, Streetwear', category: 'Fotografia', year: '2023', tags: ['Foto', 'Ensaio'], imageUrl: null },
-  { _id: 'fo3', title: 'Eventos — Café com Case', category: 'Fotografia', year: '2024', tags: ['Foto', 'Evento'], imageUrl: null },
-  { _id: 'fo4', title: 'Empresarial — Ravello Pisos e Revestimentos', category: 'Fotografia', year: '2024', tags: ['Foto', 'Empresarial'], imageUrl: null },
-  { _id: 'fo5', title: 'Institucional — Instituto Caridade Rosa', category: 'Fotografia', year: '2023', tags: ['Foto', 'Institucional'], imageUrl: null },
-  { _id: 'fo6', title: 'Eventos Sociais — Chá de Fralda, Aniversário', category: 'Fotografia', year: '2024', tags: ['Foto', 'Social'], imageUrl: null },
-  { _id: 'fo7', title: 'Documental — Rua, Skate, Batalha de Rima, Natureza', category: 'Fotografia', year: '2024', tags: ['Foto', 'Documental'], imageUrl: null },
+
 ]
 
 const DEFAULT_SERVICES = [
-  { name: 'Identidade Visual', description: 'Criação de marca completa: logo, paleta, tipografia e manual de identidade visual para posicionar sua empresa com consistência e personalidade.' },
-  { name: 'Design para Social Media', description: 'Criação de peças visuais para Instagram, Facebook e outras plataformas, com linguagem visual alinhada à identidade da sua marca.' },
-  { name: 'Calendário Editorial', description: 'Planejamento estratégico de conteúdo com datas, pautas e formatos definidos para manter sua marca sempre presente e relevante.' },
-  { name: 'Impressos e Mídia OOH', description: 'Desenvolvimento de materiais impressos e comunicação visual para o ambiente físico: banners, cartões, embalagens, adesivos, vestuário e muito mais.' },
-  { name: 'Fotografia', description: 'Ensaios empresariais, institucionais, eventos e fotografia documental. Imagens que comunicam, engajam e eternizam momentos importantes.' },
+
 ]
 
 export default function PortfolioClient({ projects: _projects, settings }: Props) {
@@ -660,7 +631,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
       {/* CONTACT */}
       <section className="contact-section" id="contato">
-        <div className="contact-bg-text">CONTATO</div>
         <div className="contact-inner">
           <span className="contact-label">Vamos trabalhar juntos</span>
           <a href={`mailto:${contact?.email || 'isaiasmellomkt@gmail.com'}`} className="contact-email">
