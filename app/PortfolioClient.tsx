@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
-import type { SiteSettings } from '../src/sanity/queries'
 
 type ProjectWithImage = {
   _id: string
@@ -11,12 +10,37 @@ type ProjectWithImage = {
   year: string
   tags: string[]
   imageUrl: string | null
-  images?: string[] // todas as fotos do projeto — adicionar no schema Sanity
+  images?: string[]
+}
+
+// Settings resolvido vindo do page.tsx
+type ResolvedSettings = {
+  profilePhotoUrl: string | null
+  heroSection: {
+    eyebrow: string
+    name: string
+    nameAccent: string
+    role: string
+    paragraph1: string
+    paragraph2: string
+    paragraph3: string
+    ctaLabel: string
+  }
+  services: { name: string; description: string }[]
+  feedbackImages: { url: string; alt?: string }[]
+  contactSection: {
+    email: string
+    whatsapp?: string
+    instagramUrl?: string
+    tiktokUrl?: string
+    behanceUrl?: string
+    linkedinUrl?: string
+  }
 }
 
 type Props = {
   projects: ProjectWithImage[]
-  settings: SiteSettings
+  settings: ResolvedSettings
 }
 
 function GrainOverlay() {
@@ -29,20 +53,17 @@ function GrainOverlay() {
 }
 
 const PROJECTS: ProjectWithImage[] = [
-  // Identidade Visual
   { _id: 'iv1', title: 'Will Cosméticos e Perfumaria', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'Logo', 'Visual'], imageUrl: null },
   { _id: 'iv2', title: 'Instituto Caridade Rosa', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'ONG'], imageUrl: null },
   { _id: 'iv3', title: 'Magnata Estética em Vidros', category: 'Identidade Visual', year: '2023', tags: ['Branding', 'Logo'], imageUrl: null },
   { _id: 'iv4', title: 'Doceria ao Quadrado', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Food'], imageUrl: null },
   { _id: 'iv5', title: 'Restaurante Tudo Gostoso', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Food'], imageUrl: null },
   { _id: 'iv6', title: 'Auto Elétrica AC Mecânica', category: 'Identidade Visual', year: '2024', tags: ['Branding', 'Auto'], imageUrl: null },
-  // Social Media
   { _id: 'sm1', title: 'Ravello Pisos e Revestimentos', category: 'Social Media', year: '2023', tags: ['Social', 'Conteúdo'], imageUrl: null },
   { _id: 'sm2', title: 'Instituto Caridade Rosa', category: 'Social Media', year: '2023', tags: ['Social', 'ONG'], imageUrl: null },
   { _id: 'sm3', title: 'Diego França Barbeiro', category: 'Social Media', year: '2024', tags: ['Social', 'Barbearia'], imageUrl: null },
   { _id: 'sm4', title: 'Loctal Máquinas e Serviços', category: 'Social Media', year: '2024', tags: ['Social', 'B2B'], imageUrl: null },
   { _id: 'sm5', title: 'Igreja Unida', category: 'Social Media', year: '2024', tags: ['Social', 'Institucional'], imageUrl: null },
-  // Impressos / OOH
   { _id: 'im1', title: 'Convites — Chá de Fralda, Empresarial, Aniversário', category: 'Impressos / OOH', year: '2023', tags: ['Impresso', 'Convite'], imageUrl: null },
   { _id: 'im2', title: 'Adesivos — Café com Case, Assistente Virtual', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Adesivo'], imageUrl: null },
   { _id: 'im3', title: 'Banner — Ravello, Igreja Unida, Pintor', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Banner'], imageUrl: null },
@@ -51,7 +72,6 @@ const PROJECTS: ProjectWithImage[] = [
   { _id: 'im6', title: 'Espaço Instagramável — Café com Case', category: 'Impressos / OOH', year: '2024', tags: ['OOH', 'Evento'], imageUrl: null },
   { _id: 'im7', title: 'Vestuário — Café com Case, Magnata, e outros', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Vestuário'], imageUrl: null },
   { _id: 'im8', title: 'Embalagem — Will Cosméticos, Doceria ao Quadrado', category: 'Impressos / OOH', year: '2024', tags: ['Impresso', 'Embalagem'], imageUrl: null },
-  // Fotografia
   { _id: 'fo1', title: 'Formaturas — ABC e Graduação', category: 'Fotografia', year: '2023', tags: ['Foto', 'Evento'], imageUrl: null },
   { _id: 'fo2', title: 'Ensaios Externos — Psicólogo, 3ª Idade, Streetwear', category: 'Fotografia', year: '2023', tags: ['Foto', 'Ensaio'], imageUrl: null },
   { _id: 'fo3', title: 'Eventos — Café com Case', category: 'Fotografia', year: '2024', tags: ['Foto', 'Evento'], imageUrl: null },
@@ -81,14 +101,17 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
   const touchStartX = useRef<number>(0)
   const touchStartY = useRef<number>(0)
 
-  const { services, contactSection: contact } = settings || {}
-  const activeServices = services?.length ? services : DEFAULT_SERVICES
+  // Dados do Sanity com fallbacks
+  const hero = settings?.heroSection
+  const contact = settings?.contactSection
+  const activeServices = settings?.services?.length ? settings.services : DEFAULT_SERVICES
+  const feedbackImages = settings?.feedbackImages || []
+  const profilePhotoUrl = settings?.profilePhotoUrl || '/mello.jpeg'
 
-  // Imagens da galeria de feedbacks vindas do Sanity
-  // Adicionar no schema: feedbackImages array of { url: string, alt: string }
-  const feedbackImages: { url: string; alt?: string }[] = (settings as any)?.feedbackImages || []
+  const whatsappUrl = contact?.whatsapp
+    ? `https://wa.me/${contact.whatsapp}`
+    : 'https://wa.me/5579981149177'
 
-  // Abre lightbox com todas as fotos do projeto
   const openProjectLightbox = (project: ProjectWithImage) => {
     const imgs: { url: string; title: string; category: string; year: string; tags: string[] }[] = []
     if (project.images && project.images.length > 0) {
@@ -103,7 +126,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
     document.body.style.overflow = 'hidden'
   }
 
-  // Abre lightbox para galeria de feedbacks
   const openFeedbackLightbox = (index: number) => {
     if (!feedbackImages.length) return
     setLightbox({
@@ -183,7 +205,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-weight: 200; overflow-x: hidden; cursor: crosshair; max-width: 100vw; }
         ::selection { background: var(--accent); color: #fff; }
 
-        /* NAV */
         .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; transition: background 0.3s, padding 0.3s, border-color 0.3s; border-bottom: 1px solid transparent; }
         .nav.solid { background: rgba(13,13,13,0.92); backdrop-filter: blur(16px); padding: 16px 48px; border-color: var(--border); }
         .nav-logo { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
@@ -194,10 +215,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .nav-cta { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--bg); background: var(--accent); text-decoration: none; padding: 10px 20px; transition: background 0.2s, transform 0.2s; }
         .nav-cta:hover { background: var(--accent2); color: var(--bg); transform: translate(-2px,-2px); }
 
-        /* ABOUT / APRESENTAÇÃO HERO */
         .about-hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; border-bottom: 1px solid var(--border); }
         .about-hero-photo { position: relative; overflow: hidden; background: var(--surface); }
-        .about-hero-photo-inner { position: absolute; inset: 0; }
         .about-hero-photo-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
         .photo-placeholder-circle { width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; }
         .photo-placeholder-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
@@ -212,19 +231,17 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .about-hero-text { max-width: 480px; font-size: 15px; font-weight: 200; line-height: 1.9; color: #888; margin-bottom: 16px; opacity: 0; transition: opacity 0.9s ease 0.5s; }
         .about-hero-text.in { opacity: 1; }
         .about-hero-divider { width: 48px; height: 2px; background: var(--accent); margin: 32px 0; }
-        .about-hero-cta { display: inline-flex; align-items: center; gap: 12px; background: transparent; border: 1px solid var(--accent); color: var(--accent); font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 14px 28px; transition: background 0.2s, color 0.2s, transform 0.2s; margin-top: 16px; opacity: 0; transition: opacity 0.9s ease 0.8s, background 0.2s, color 0.2s, transform 0.2s; cursor: pointer; }
+        .about-hero-cta { display: inline-flex; align-items: center; gap: 12px; background: transparent; border: 1px solid var(--accent); color: var(--accent); font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 14px 28px; margin-top: 16px; opacity: 0; transition: opacity 0.9s ease 0.8s, background 0.2s, color 0.2s, transform 0.2s; cursor: pointer; }
         .about-hero-cta.in { opacity: 1; }
         .about-hero-cta:hover { background: var(--accent); color: var(--bg); transform: translate(-2px, -2px); }
         .about-hero-accent-block { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); z-index: 3; }
 
-        /* TICKER */
         .ticker { overflow: hidden; width: 100%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--accent); }
         .ticker-track { display: flex; animation: ticker 20s linear infinite; white-space: nowrap; }
         .ticker-item { display: flex; align-items: center; gap: 24px; padding: 14px 32px; font-family: var(--font-display); font-size: 16px; letter-spacing: 0.1em; color: var(--bg); flex-shrink: 0; }
         .ticker-sep { opacity: 0.4; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        /* WORK */
         .work-section { padding: 120px 48px; }
         .work-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 80px; }
         .work-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
@@ -232,16 +249,14 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .work-title-alt { color: transparent; -webkit-text-stroke: 1px var(--text); }
         .work-count { font-family: var(--font-display); font-size: 14px; letter-spacing: 0.1em; color: var(--muted); padding-bottom: 12px; }
         .category-block { margin-bottom: 64px; }
-        .category-label { font-size: 10px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); margin-bottom: 0; padding: 16px 0; border-top: 2px solid var(--accent); display: flex; align-items: center; gap: 12px; }
+        .category-label { font-size: 10px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); padding: 16px 0; border-top: 2px solid var(--accent); display: flex; align-items: center; gap: 12px; }
         .category-label-line { flex: 1; height: 1px; background: var(--border); }
         .project-list { display: flex; flex-direction: column; width: 100%; }
         .project-row { display: grid; grid-template-columns: 64px 1fr auto auto; align-items: center; gap: 16px; padding: 24px 0; border-bottom: 1px solid var(--border); cursor: pointer; position: relative; overflow: hidden; transition: padding 0.3s ease; min-width: 0; }
         .project-row::before { content: ''; position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); z-index: 0; }
         .project-row:hover::before { transform: scaleX(1); }
         .project-row:hover { padding-left: 24px; }
-        .project-row:hover .project-row-num,
-        .project-row:hover .project-row-title,
-        .project-row:hover .project-row-cat { color: var(--bg) !important; }
+        .project-row:hover .project-row-num, .project-row:hover .project-row-title, .project-row:hover .project-row-cat { color: var(--bg) !important; }
         .project-row:hover .project-row-tags span { background: rgba(0,0,0,0.2); color: var(--bg); border-color: transparent; }
         .project-row-num { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.1em; color: var(--muted); position: relative; z-index: 1; transition: color 0.2s; }
         .project-row-title { font-family: var(--font-display); font-size: clamp(18px, 2.8vw, 38px); letter-spacing: 0.04em; color: var(--text); position: relative; z-index: 1; transition: color 0.2s; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -251,12 +266,9 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .no-image-row { cursor: default; }
         .no-image-row::before { display: none; }
         .no-image-row:hover { padding-left: 0; }
-        .no-image-row:hover .project-row-num,
-        .no-image-row:hover .project-row-title,
-        .no-image-row:hover .project-row-cat { color: inherit !important; }
+        .no-image-row:hover .project-row-num, .no-image-row:hover .project-row-title, .no-image-row:hover .project-row-cat { color: inherit !important; }
         .no-image-row:hover .project-row-tags span { background: transparent !important; color: var(--muted) !important; border-color: var(--border) !important; }
 
-        /* LIGHTBOX */
         .lightbox-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; animation: lbIn 0.3s ease; }
         @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
         .lightbox-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
@@ -278,23 +290,24 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .lightbox-tags { display: flex; gap: 8px; flex-wrap: wrap; padding: 16px 32px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
         .lightbox-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--border); color: var(--muted); }
 
-        /* FEEDBACKS — GALERIA DE IMAGENS */
         .feedbacks-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
-        .feedbacks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; margin-top: 80px; }
-        .feedback-img-item { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--bg); cursor: pointer; }
-        .feedback-img-item img { transition: transform 0.5s cubic-bezier(0.16,1,0.3,1); }
-        .feedback-img-item:hover img { transform: scale(1.06); }
-        .feedback-img-overlay { position: absolute; inset: 0; background: rgba(255,61,0,0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2; }
+        .feedbacks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
+        .feedback-img-item { position: relative; background: var(--surface); overflow: hidden; cursor: pointer; transition: background 0.3s; }
+        .feedback-img-item:hover { background: var(--bg); }
+        .feedback-img-item:hover .feedback-bar { width: 100%; }
+        .feedback-img-item:hover .feedback-img-inner img { transform: scale(1.03); }
+        .feedback-bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); z-index: 3; }
+        .feedback-img-inner { position: relative; width: 100%; background: #0a0a0a; }
+        .feedback-img-inner img { width: 100% !important; height: auto !important; position: relative !important; display: block; transition: transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+        .feedback-img-overlay { position: absolute; inset: 0; background: rgba(255,61,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2; }
         .feedback-img-item:hover .feedback-img-overlay { opacity: 1; }
         .feedback-img-icon { font-family: var(--font-display); font-size: 36px; color: #fff; letter-spacing: 0.05em; }
-        .feedback-img-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 100%; border: 1px dashed var(--border); }
+        .feedback-img-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; aspect-ratio: 4/3; }
         .feedback-img-placeholder-num { font-family: var(--font-display); font-size: 56px; color: var(--border); line-height: 1; }
         .feedback-img-placeholder-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 
-        /* CONTACT FORM */
         .form-section { padding: 120px 48px; border-top: 1px solid var(--border); }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 80px; align-items: start; }
-        .form-left { }
         .form-left-title { font-family: var(--font-display); font-size: clamp(40px, 5vw, 72px); line-height: 0.9; letter-spacing: 0.03em; margin-bottom: 24px; }
         .form-left-title .inv { color: transparent; -webkit-text-stroke: 1px var(--text); }
         .form-left-desc { font-size: 14px; font-weight: 200; line-height: 1.9; color: #666; max-width: 400px; }
@@ -304,15 +317,13 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .form-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
         .form-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-body); font-size: 16px; font-weight: 200; padding: 8px 0; width: 100%; }
         .form-input::placeholder { color: var(--muted); }
-        .form-input:focus { color: var(--text); }
-        .form-submit { margin-top: 32px; display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s; cursor: pointer; border: none; width: 100%; justify-content: center; }
+        .form-submit { margin-top: 32px; display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s; cursor: pointer; border: none; width: 100%; justify-content: center; }
         .form-submit:hover { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
         .form-success { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; border: 1px solid var(--accent); text-align: center; gap: 16px; }
         .form-success-icon { font-family: var(--font-display); font-size: 64px; color: var(--accent); line-height: 1; }
         .form-success-title { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.06em; }
         .form-success-text { font-size: 14px; font-weight: 200; color: #666; line-height: 1.8; }
 
-        /* CONTACT */
         .contact-section { padding: 120px 48px; border-top: 1px solid var(--border); position: relative; overflow: hidden; width: 100%; }
         .contact-bg-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: var(--font-display); font-size: clamp(80px, 18vw, 280px); letter-spacing: 0.1em; color: transparent; -webkit-text-stroke: 1px var(--border); white-space: nowrap; pointer-events: none; user-select: none; width: max-content; }
         .contact-inner { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; text-align: center; }
@@ -324,7 +335,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .contact-btn { display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s; }
         .contact-btn:hover { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
 
-        /* FOOTER */
         footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; background: var(--surface); flex-wrap: wrap; gap: 24px; }
         .footer-logo { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
         .footer-logo span { color: var(--accent); }
@@ -333,7 +343,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .footer-links a { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; padding: 6px 12px; border: 1px solid var(--border); }
         .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
 
-        /* SERVICES */
         .services-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
         .service-card { background: var(--surface); padding: 48px 40px; position: relative; overflow: hidden; transition: background 0.3s; }
@@ -345,26 +354,22 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .service-name { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; margin-bottom: 16px; }
         .service-desc { font-size: 13px; font-weight: 200; line-height: 1.8; color: #666; }
 
-        /* RESPONSIVE */
         @media (max-width: 900px) {
           .nav { padding: 20px 24px; }
           .nav.solid { padding: 14px 24px; }
           .nav-links, .nav-cta { display: none; }
-
-          /* FOTO MOBILE — banner no topo em vez de display:none */
           .about-hero { grid-template-columns: 1fr; grid-template-rows: 60vw 1fr; min-height: auto; }
           .about-hero-photo { display: block; height: 60vw; position: relative; }
           .about-hero-photo-overlay { background: linear-gradient(to bottom, transparent 50%, var(--bg) 100%); }
           .about-hero-accent-block { width: 100%; height: 4px; top: 0; left: 0; bottom: auto; }
           .about-hero-content { padding: 32px 24px 80px; min-height: auto; }
-
           .work-section { padding: 80px 24px; }
           .work-header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 48px; }
           .project-row { grid-template-columns: 48px 1fr; gap: 12px; padding: 18px 0; }
           .project-row-cat, .project-row-tags { display: none; }
           .project-row-title { font-size: clamp(18px, 4.5vw, 28px); white-space: normal; }
           .feedbacks-section { padding: 80px 24px; }
-          .feedbacks-grid { grid-template-columns: repeat(2, 1fr); }
+          .feedbacks-grid { grid-template-columns: repeat(2, 1fr); gap: 1px; }
           .form-section { padding: 80px 24px; }
           .form-grid { grid-template-columns: 1fr; gap: 40px; }
           .services-section { padding: 80px 24px; }
@@ -436,7 +441,9 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
       {/* NAV */}
       <nav className={`nav ${navSolid ? 'solid' : ''}`}>
-        <a href="#" className="nav-logo">ISAÍAS <span>MELO</span></a>
+        <a href="#" className="nav-logo">
+          {hero?.name || 'ISAÍAS'} <span>{hero?.nameAccent || 'MELO'}</span>
+        </a>
         <ul className="nav-links">
           <li><a href="#trabalhos">Trabalhos</a></li>
           <li><a href="#feedbacks">Feedbacks</a></li>
@@ -446,18 +453,25 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         <a href="#formulario" className="nav-cta">Fale comigo</a>
       </nav>
 
-      {/* APRESENTAÇÃO / ABOUT HERO */}
+      {/* APRESENTAÇÃO */}
       <section className="about-hero" id="sobre">
         <div className="about-hero-photo">
+          {/* Placeholder visível enquanto a foto não carrega */}
           <div className="about-hero-photo-placeholder">
             <div className="photo-placeholder-circle">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
             </div>
-            <span className="photo-placeholder-label">Sua foto aqui</span>
+            <span className="photo-placeholder-label">Foto de perfil</span>
           </div>
-          <Image src="/mello.jpeg" alt="Isaías Melo" fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+          {/* Foto — vem do Sanity ou fallback /mello.jpeg */}
+          <Image
+            src={profilePhotoUrl}
+            alt={hero?.name ? `${hero.name} ${hero.nameAccent}` : 'Isaías Melo'}
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center top' }}
+          />
           <div className="about-hero-photo-overlay" />
           <div className="about-hero-accent-block" />
         </div>
@@ -465,24 +479,25 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         <div className="about-hero-content">
           <p className={`about-hero-eyebrow ${loaded ? 'in' : ''}`}>
             <span className="about-hero-eyebrow-line" />
-            Diretor de Arte &amp; Fotógrafo — Sergipe, Brasil
+            {hero?.eyebrow || 'Diretor de Arte & Fotógrafo — Sergipe, Brasil'}
           </p>
           <h1 className="about-hero-name">
-            ISAÍAS<br /><span className="accent">MELO</span>
+            {hero?.name || 'ISAÍAS'}<br />
+            <span className="accent">{hero?.nameAccent || 'MELO'}</span>
           </h1>
-          <p className="about-hero-role">Publicidade &amp; Propaganda · UFS · 7º Período</p>
+          <p className="about-hero-role">{hero?.role || 'Publicidade & Propaganda · UFS · 7º Período'}</p>
           <p className={`about-hero-text ${loaded ? 'in' : ''}`}>
-            Olá, meu nome é Isaías Melo. Tenho 24 anos e estou no 7º período de Publicidade e Propaganda na Universidade Federal de Sergipe.
+            {hero?.paragraph1 || 'Olá, meu nome é Isaías Melo. Tenho 24 anos e estou no 7º período de Publicidade e Propaganda na Universidade Federal de Sergipe.'}
           </p>
           <p className={`about-hero-text ${loaded ? 'in' : ''}`} style={{ transitionDelay: '0.65s' }}>
-            Sou apaixonado por arte, principalmente pela forma como ela se comunica com as pessoas. Atuo com construção de marca, criação de conteúdo para redes sociais e desenvolvimento de materiais impressos, sempre com foco em compreender o problema e transformá-lo em uma solução visual clara, objetiva e estratégica.
+            {hero?.paragraph2 || 'Sou apaixonado por arte, principalmente pela forma como ela se comunica com as pessoas. Atuo com construção de marca, criação de conteúdo para redes sociais e desenvolvimento de materiais impressos, sempre com foco em compreender o problema e transformá-lo em uma solução visual clara, objetiva e estratégica.'}
           </p>
           <p className={`about-hero-text ${loaded ? 'in' : ''}`} style={{ transitionDelay: '0.8s' }}>
-            Além disso, sou fotógrafo, movido pela paixão de eternizar momentos importantes e sinceros. Ao longo dessa trajetória, trabalhei desde a criação de uma arte para um microempreendedor até projetos para empresas com mais de 300 colaboradores. Acredito que tudo o que é feito com amor prevalece.
+            {hero?.paragraph3 || 'Além disso, sou fotógrafo, movido pela paixão de eternizar momentos importantes e sinceros. Ao longo dessa trajetória, trabalhei desde a criação de uma arte para um microempreendedor até projetos para empresas com mais de 300 colaboradores. Acredito que tudo o que é feito com amor prevalece.'}
           </p>
           <div className="about-hero-divider" />
           <a href="#trabalhos" className={`about-hero-cta ${loaded ? 'in' : ''}`}>
-            Ver meus trabalhos <span>↓</span>
+            {hero?.ctaLabel || 'Ver meus trabalhos'} <span>↓</span>
           </a>
         </div>
       </section>
@@ -499,7 +514,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         </div>
       </div>
 
-      {/* WORK — lista original preservada com hover + preview */}
+      {/* WORK */}
       <section className="work-section" id="trabalhos">
         <div className="work-header">
           <div>
@@ -548,22 +563,33 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         })}
       </section>
 
-      {/* FEEDBACKS — galeria de imagens vindas do Sanity */}
+      {/* FEEDBACKS */}
       <section className="feedbacks-section" id="feedbacks">
         <p className="work-label">O que dizem sobre mim</p>
         <h2 className="work-title" style={{ marginTop: 8 }}>FEED<span className="work-title-alt">BACKS</span></h2>
         <div className="feedbacks-grid">
           {feedbackImages.length > 0
-            ? feedbackImages.map((img, i) => (
+            ? feedbackImages.map((img: { url: string; alt?: string }, i: number) => (
                 <div key={i} className="feedback-img-item" onClick={() => openFeedbackLightbox(i)}>
-                  <Image src={img.url} alt={img.alt || `Feedback ${i + 1}`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 600px) 50vw, 33vw" />
-                  <div className="feedback-img-overlay">
-                    <span className="feedback-img-icon">+</span>
+                  <div className="feedback-bar" />
+                  <div className="feedback-img-inner">
+                    <Image
+                      src={img.url}
+                      alt={img.alt || `Feedback ${i + 1}`}
+                      width={800}
+                      height={600}
+                      style={{ width: '100%', height: 'auto' }}
+                      sizes="(max-width: 600px) 50vw, 33vw"
+                    />
+                    <div className="feedback-img-overlay">
+                      <span className="feedback-img-icon">+</span>
+                    </div>
                   </div>
                 </div>
               ))
             : [1, 2, 3, 4, 5, 6].map(n => (
                 <div key={n} className="feedback-img-item">
+                  <div className="feedback-bar" />
                   <div className="feedback-img-placeholder">
                     <span className="feedback-img-placeholder-num">{String(n).padStart(2, '0')}</span>
                     <span className="feedback-img-placeholder-label">Imagem em breve</span>
@@ -590,15 +616,13 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         </div>
       </section>
 
-      {/* FORMULÁRIO DE CAPTAÇÃO */}
+      {/* FORMULÁRIO */}
       <section className="form-section" id="formulario">
         <p className="work-label">Deixe seu contato</p>
         <div className="form-grid">
-          <div className="form-left">
+          <div>
             <h2 className="form-left-title">
-              VAMOS<br />
-              <span className="inv">CRIAR</span><br />
-              JUNTOS?
+              VAMOS<br /><span className="inv">CRIAR</span><br />JUNTOS?
             </h2>
             <p className="form-left-desc">
               Preencha o formulário ao lado com seu nome, telefone e e-mail. Entrarei em contato para entender o seu projeto e apresentar a melhor solução para a sua marca.
@@ -640,10 +664,10 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         <div className="contact-inner">
           <span className="contact-label">Vamos trabalhar juntos</span>
           <h2 className="contact-heading">DIGA<br /><span className="inv">OLÁ.</span></h2>
-          <a href="mailto:isaiasmellomkt@gmail.com" className="contact-email">
-            isaiasmellomkt@gmail.com
+          <a href={`mailto:${contact?.email || 'isaiasmellomkt@gmail.com'}`} className="contact-email">
+            {contact?.email || 'isaiasmellomkt@gmail.com'}
           </a>
-          <a href="https://wa.me/5579981149177" target="_blank" rel="noopener noreferrer" className="contact-btn">
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="contact-btn">
             Enviar mensagem no WhatsApp <span>→</span>
           </a>
         </div>
@@ -651,13 +675,15 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
       {/* FOOTER */}
       <footer>
-        <a href="#" className="footer-logo">ISAÍAS <span>MELO</span></a>
+        <a href="#" className="footer-logo">
+          {hero?.name || 'ISAÍAS'} <span>{hero?.nameAccent || 'MELO'}</span>
+        </a>
         <span className="footer-copy">© {new Date().getFullYear()} — Todos os direitos reservados</span>
         <div className="footer-links">
-          <a href="https://www.instagram.com/mellorgb/" target="_blank" rel="noopener noreferrer">Instagram</a>
-          <a href="https://www.tiktok.com/@mellorgb?lang=pt-BR" target="_blank" rel="noopener noreferrer">TikTok</a>
-          <a href="https://www.behance.net/isaiasmello" target="_blank" rel="noopener noreferrer">Behance</a>
-          <a href="https://www.linkedin.com/in/isa%C3%ADas-melo-52b8a53b3/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          {contact?.instagramUrl && <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer">Instagram</a>}
+          {contact?.tiktokUrl && <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer">TikTok</a>}
+          {contact?.behanceUrl && <a href={contact.behanceUrl} target="_blank" rel="noopener noreferrer">Behance</a>}
+          {contact?.linkedinUrl && <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer">LinkedIn</a>}
         </div>
       </footer>
     </>

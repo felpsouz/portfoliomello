@@ -14,29 +14,21 @@ export type Project = {
   year: string
   tags: string[]
   coverImage?: SanityImage
+  images?: SanityImage[]
   order: number
   published: boolean
 }
 
 export type HeroSection = {
+  profilePhoto?: SanityImage
   eyebrow: string
-  titleLine1: string
-  titleLine2: string
-  titleLine3: string
-  description: string
-  statExperience: string
-  statProjects: string
-  statClients: string
-}
-
-export type AboutSection = {
-  headingLine1: string
-  headingLine2: string
-  headingLine3: string
+  name: string
+  nameAccent: string
+  role: string
   paragraph1: string
   paragraph2: string
-  establishedYear: string
-  skills: string[]
+  paragraph3: string
+  ctaLabel: string
 }
 
 export type Service = {
@@ -44,17 +36,24 @@ export type Service = {
   description: string
 }
 
+export type FeedbackImage = {
+  asset: { _ref: string }
+  alt?: string
+}
+
 export type ContactSection = {
   email: string
+  whatsapp?: string
   instagramUrl?: string
+  tiktokUrl?: string
   behanceUrl?: string
   linkedinUrl?: string
 }
 
 export type SiteSettings = {
   heroSection: HeroSection
-  aboutSection: AboutSection
   services: Service[]
+  feedbackImages?: FeedbackImage[]
   contactSection: ContactSection
   seo: {
     siteTitle: string
@@ -74,16 +73,54 @@ const PROJECTS_QUERY = `
       alt,
       hotspot
     },
+    images[] {
+      asset,
+      alt,
+      hotspot
+    },
     order
   }
 `
 
 const SITE_SETTINGS_QUERY = `
   *[_type == "siteSettings"][0] {
-    heroSection,
-    aboutSection,
-    services,
-    contactSection,
+    heroSection {
+      profilePhoto { asset, alt, hotspot },
+      eyebrow,
+      name,
+      nameAccent,
+      role,
+      paragraph1,
+      paragraph2,
+      paragraph3,
+      ctaLabel
+    },
+    services[] {
+      name,
+      description
+    },
+    feedbackImages[] {
+      asset-> {
+        _id,
+        _ref,
+        url,
+        metadata {
+          dimensions {
+            width,
+            height
+          }
+        }
+      },
+      alt
+    },
+    contactSection {
+      email,
+      whatsapp,
+      instagramUrl,
+      tiktokUrl,
+      behanceUrl,
+      linkedinUrl
+    },
     seo
   }
 `
