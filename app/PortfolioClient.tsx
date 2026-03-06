@@ -288,23 +288,23 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .lightbox-close { font-size: 22px; }
         .lightbox-counter { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.1em; color: var(--muted); padding: 0 16px; }
 
-        /* Lightbox image — scroll vertical, sem corte */
+        /* Lightbox image — cabe na tela, sem corte, sem scroll lateral */
         .lightbox-image-wrap {
           flex: 1;
           overflow-y: auto;
           overflow-x: hidden;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
-          padding: 32px 80px;
+          padding: 24px 72px;
         }
         .lightbox-image-wrap img {
-          max-width: 100%;
-          height: auto !important;
+          max-width: 100% !important;
+          max-height: calc(100vh - 160px) !important;
           width: auto !important;
-          max-height: none !important;
+          height: auto !important;
           display: block;
-          object-fit: unset !important;
+          object-fit: contain !important;
         }
 
         .lightbox-arrow { position: fixed; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: rgba(13,13,13,0.85); color: var(--text); font-size: 20px; cursor: pointer; transition: background 0.2s, border-color 0.2s; z-index: 1001; backdrop-filter: blur(8px); }
@@ -421,7 +421,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           .contact-heading { font-size: clamp(56px, 14vw, 100px); }
           .contact-btn { padding: 16px 32px; width: 100%; justify-content: center; }
           footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
-          .lightbox-image-wrap { padding: 20px 56px; }
+          .lightbox-image-wrap { padding: 16px 52px; }
           .lightbox-arrow { width: 44px; height: 44px; }
           .lightbox-arrow.left { left: 4px; }
           .lightbox-arrow.right { right: 4px; }
@@ -437,7 +437,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           .contact-email { font-size: clamp(16px, 4.5vw, 24px); word-break: break-all; }
           .form-left-title { font-size: clamp(36px, 10vw, 56px); }
           .feedbacks-grid { columns: 1; }
-          .lightbox-image-wrap { padding: 16px 48px; }
+          .lightbox-image-wrap { padding: 12px 48px; }
         }
       `}</style>
 
@@ -479,7 +479,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               alt={activeImg.title}
               width={activeImg.width || 1200}
               height={activeImg.height || 900}
-              style={{ width: 'auto', height: 'auto', maxWidth: '100%' }}
+              style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 160px)', width: 'auto', height: 'auto' }}
               sizes="100vw"
               priority
             />
