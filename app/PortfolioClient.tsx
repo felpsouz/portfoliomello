@@ -10,7 +10,9 @@ type ProjectWithImage = {
   year: string
   tags: string[]
   imageUrl: string | null
-  images?: string[]
+  imageWidth?: number
+  imageHeight?: number
+  images?: { url: string; width: number; height: number }[]
 }
 
 // Settings resolvido vindo do page.tsx
@@ -27,7 +29,7 @@ type ResolvedSettings = {
     ctaLabel: string
   }
   services: { name: string; description: string }[]
-  feedbackImages: { url: string; alt?: string }[]
+  feedbackImages: { url: string; alt?: string; width: number; height: number }[]
   contactSection: {
     email: string
     whatsapp?: string
@@ -52,17 +54,9 @@ function GrainOverlay() {
   )
 }
 
-const PROJECTS: ProjectWithImage[] = [
+const PROJECTS: ProjectWithImage[] = []
 
-]
-
-const DEFAULT_SERVICES = [
-  { name: 'Identidade Visual', description: 'Criação de marca completa: logo, paleta, tipografia e manual de identidade visual para posicionar sua empresa com consistência e personalidade.' },
-  { name: 'Design para Social Media', description: 'Criação de peças visuais para Instagram, Facebook e outras plataformas, com linguagem visual alinhada à identidade da sua marca.' },
-  { name: 'Calendário Editorial', description: 'Planejamento estratégico de conteúdo com datas, pautas e formatos definidos para manter sua marca sempre presente e relevante.' },
-  { name: 'Impressos e Mídia OOH', description: 'Desenvolvimento de materiais impressos e comunicação visual para o ambiente físico: banners, cartões, embalagens, adesivos, vestuário e muito mais.' },
-  { name: 'Fotografia', description: 'Ensaios empresariais, institucionais, eventos e fotografia documental. Imagens que comunicam, engajam e eternizam momentos importantes.' },
-]
+const DEFAULT_SERVICES: { name: string; description: string }[] = []
 
 export default function PortfolioClient({ projects: _projects, settings }: Props) {
   const projects = _projects?.length ? _projects : PROJECTS
@@ -70,13 +64,15 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
   const [loaded, setLoaded] = useState(false)
   const [hovered, setHovered] = useState<string | null>(null)
   const [scrollY, setScrollY] = useState(0)
-  const [lightbox, setLightbox] = useState<{ images: { url: string; title: string; category: string; year: string; tags: string[] }[]; index: number } | null>(null)
+  const [lightbox, setLightbox] = useState<{
+    images: { url: string; title: string; category: string; year: string; tags: string[]; width?: number; height?: number }[]
+    index: number
+  } | null>(null)
   const [formData, setFormData] = useState({ nome: '', telefone: '', email: '' })
   const [formSent, setFormSent] = useState(false)
   const touchStartX = useRef<number>(0)
   const touchStartY = useRef<number>(0)
 
-  // Dados do Sanity com fallbacks
   const hero = settings?.heroSection
   const contact = settings?.contactSection
   const activeServices = settings?.services?.length ? settings.services : DEFAULT_SERVICES
@@ -87,15 +83,38 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
     ? `https://wa.me/${contact.whatsapp}`
     : 'https://wa.me/5579981149177'
 
+  // Abre lightbox com capa + todas as fotos da galeria
   const openProjectLightbox = (project: ProjectWithImage) => {
-    const imgs: { url: string; title: string; category: string; year: string; tags: string[] }[] = []
-    if (project.images && project.images.length > 0) {
-      project.images.forEach((url, i) => {
-        imgs.push({ url, title: `${project.title} — ${i + 1}`, category: project.category, year: project.year, tags: project.tags })
+    const imgs: { url: string; title: string; category: string; year: string; tags: string[]; width?: number; height?: number }[] = []
+
+    // Capa sempre primeira
+    if (project.imageUrl) {
+      imgs.push({
+        url: project.imageUrl,
+        title: project.title,
+        category: project.category,
+        year: project.year,
+        tags: project.tags,
+        width: project.imageWidth,
+        height: project.imageHeight,
       })
-    } else if (project.imageUrl) {
-      imgs.push({ url: project.imageUrl, title: project.title, category: project.category, year: project.year, tags: project.tags })
     }
+
+    // Galeria em seguida (sem repetir a capa)
+    if (project.images && project.images.length > 0) {
+      project.images.forEach((img, i) => {
+        imgs.push({
+          url: img.url,
+          title: `${project.title} — ${i + 1}/${project.images!.length}`,
+          category: project.category,
+          year: project.year,
+          tags: project.tags,
+          width: img.width,
+          height: img.height,
+        })
+      })
+    }
+
     if (imgs.length === 0) return
     setLightbox({ images: imgs, index: 0 })
     document.body.style.overflow = 'hidden'
@@ -104,7 +123,15 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
   const openFeedbackLightbox = (index: number) => {
     if (!feedbackImages.length) return
     setLightbox({
-      images: feedbackImages.map((img, i) => ({ url: img.url, title: img.alt || `Imagem ${i + 1}`, category: '', year: '', tags: [] })),
+      images: feedbackImages.map((img, i) => ({
+        url: img.url,
+        title: img.alt || `Feedback ${i + 1}`,
+        category: '',
+        year: '',
+        tags: [],
+        width: img.width,
+        height: img.height,
+      })),
       index,
     })
     document.body.style.overflow = 'hidden'
@@ -129,7 +156,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Lead capturado:', formData)
     setFormSent(true)
     setFormData({ nome: '', telefone: '', email: '' })
   }
@@ -180,6 +206,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-weight: 200; overflow-x: hidden; cursor: crosshair; max-width: 100vw; }
         ::selection { background: var(--accent); color: #fff; }
 
+        /* NAV */
         .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; transition: background 0.3s, padding 0.3s, border-color 0.3s; border-bottom: 1px solid transparent; }
         .nav.solid { background: rgba(13,13,13,0.92); backdrop-filter: blur(16px); padding: 16px 48px; border-color: var(--border); }
         .nav-logo { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
@@ -190,6 +217,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .nav-cta { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--bg); background: var(--accent); text-decoration: none; padding: 10px 20px; transition: background 0.2s, transform 0.2s; }
         .nav-cta:hover { background: var(--accent2); color: var(--bg); transform: translate(-2px,-2px); }
 
+        /* HERO */
         .about-hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; border-bottom: 1px solid var(--border); }
         .about-hero-photo { position: relative; overflow: hidden; background: var(--surface); }
         .about-hero-photo-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
@@ -211,12 +239,14 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .about-hero-cta:hover { background: var(--accent); color: var(--bg); transform: translate(-2px, -2px); }
         .about-hero-accent-block { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); z-index: 3; }
 
+        /* TICKER */
         .ticker { overflow: hidden; width: 100%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--accent); }
         .ticker-track { display: flex; animation: ticker 20s linear infinite; white-space: nowrap; }
         .ticker-item { display: flex; align-items: center; gap: 24px; padding: 14px 32px; font-family: var(--font-display); font-size: 16px; letter-spacing: 0.1em; color: var(--bg); flex-shrink: 0; }
         .ticker-sep { opacity: 0.4; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
+        /* WORK */
         .work-section { padding: 120px 48px; }
         .work-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 80px; }
         .work-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
@@ -244,7 +274,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .no-image-row:hover .project-row-num, .no-image-row:hover .project-row-title, .no-image-row:hover .project-row-cat { color: inherit !important; }
         .no-image-row:hover .project-row-tags span { background: transparent !important; color: var(--muted) !important; border-color: var(--border) !important; }
 
-        .lightbox-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; animation: lbIn 0.3s ease; }
+        /* LIGHTBOX */
+        .lightbox-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.97); display: flex; flex-direction: column; animation: lbIn 0.3s ease; }
         @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
         .lightbox-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
         .lightbox-info { display: flex; flex-direction: column; gap: 4px; }
@@ -252,35 +283,67 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .lightbox-meta { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
         .lightbox-meta span { color: var(--accent); margin-right: 12px; }
         .lightbox-controls { display: flex; align-items: center; gap: 8px; }
-        .lightbox-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 18px; cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s; font-family: var(--font-display); letter-spacing: 0.05em; }
+        .lightbox-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 18px; cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s; font-family: var(--font-display); }
         .lightbox-btn:hover { background: var(--accent); border-color: var(--accent); color: #000; }
         .lightbox-close { font-size: 22px; }
         .lightbox-counter { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.1em; color: var(--muted); padding: 0 16px; }
-        .lightbox-image-wrap { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .lightbox-image-wrap img { object-fit: contain !important; max-height: 100%; max-width: 100%; }
-        .lightbox-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: rgba(13,13,13,0.8); color: var(--text); font-size: 20px; cursor: pointer; transition: background 0.2s, border-color 0.2s; z-index: 2; backdrop-filter: blur(8px); }
+
+        /* Lightbox image — scroll vertical, sem corte */
+        .lightbox-image-wrap {
+          flex: 1;
+          overflow-y: auto;
+          overflow-x: hidden;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          padding: 32px 80px;
+        }
+        .lightbox-image-wrap img {
+          max-width: 100%;
+          height: auto !important;
+          width: auto !important;
+          max-height: none !important;
+          display: block;
+          object-fit: unset !important;
+        }
+
+        .lightbox-arrow { position: fixed; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: rgba(13,13,13,0.85); color: var(--text); font-size: 20px; cursor: pointer; transition: background 0.2s, border-color 0.2s; z-index: 1001; backdrop-filter: blur(8px); }
         .lightbox-arrow:hover { background: var(--accent); border-color: var(--accent); color: #000; }
-        .lightbox-arrow.left { left: 24px; }
-        .lightbox-arrow.right { right: 24px; }
+        .lightbox-arrow.left { left: 16px; }
+        .lightbox-arrow.right { right: 16px; }
         .lightbox-tags { display: flex; gap: 8px; flex-wrap: wrap; padding: 16px 32px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
         .lightbox-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--border); color: var(--muted); }
 
+        /* FEEDBACKS — masonry, sem corte, com espaçamento */
         .feedbacks-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
-        .feedbacks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
-        .feedback-img-item { position: relative; background: var(--surface); overflow: hidden; cursor: pointer; transition: background 0.3s; }
-        .feedback-img-item:hover { background: var(--bg); }
+        .feedbacks-grid {
+          columns: 3;
+          column-gap: 16px;
+          margin-top: 80px;
+        }
+        .feedback-img-item {
+          break-inside: avoid;
+          margin-bottom: 16px;
+          position: relative;
+          background: var(--surface);
+          overflow: hidden;
+          cursor: pointer;
+          transition: background 0.3s;
+          display: block;
+        }
         .feedback-img-item:hover .feedback-bar { width: 100%; }
-        .feedback-img-item:hover .feedback-img-inner img { transform: scale(1.03); }
-        .feedback-bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); z-index: 3; }
+        .feedback-img-item:hover .feedback-img-inner img { transform: scale(1.02); }
+        .feedback-bar { position: absolute; top: 0; left: 0; height: 3px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); z-index: 3; }
         .feedback-img-inner { position: relative; width: 100%; background: #0a0a0a; }
         .feedback-img-inner img { width: 100% !important; height: auto !important; position: relative !important; display: block; transition: transform 0.5s cubic-bezier(0.16,1,0.3,1); }
-        .feedback-img-overlay { position: absolute; inset: 0; background: #FEFCED,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2; }
+        .feedback-img-overlay { position: absolute; inset: 0; background: rgba(254,252,237,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; z-index: 2; }
         .feedback-img-item:hover .feedback-img-overlay { opacity: 1; }
         .feedback-img-icon { font-family: var(--font-display); font-size: 36px; color: #fff; letter-spacing: 0.05em; }
-        .feedback-img-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; aspect-ratio: 4/3; }
+        .feedback-img-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; aspect-ratio: 4/3; border: 1px dashed var(--border); }
         .feedback-img-placeholder-num { font-family: var(--font-display); font-size: 56px; color: var(--border); line-height: 1; }
         .feedback-img-placeholder-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 
+        /* FORM */
         .form-section { padding: 120px 48px; border-top: 1px solid var(--border); }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 80px; align-items: start; }
         .form-left-title { font-family: var(--font-display); font-size: clamp(40px, 5vw, 72px); line-height: 0.9; letter-spacing: 0.03em; margin-bottom: 24px; }
@@ -299,6 +362,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .form-success-title { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.06em; }
         .form-success-text { font-size: 14px; font-weight: 200; color: #666; line-height: 1.8; }
 
+        /* CONTACT */
         .contact-section { padding: 120px 48px; border-top: 1px solid var(--border); position: relative; overflow: hidden; width: 100%; }
         .contact-bg-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: var(--font-display); font-size: clamp(80px, 18vw, 280px); letter-spacing: 0.1em; color: transparent; -webkit-text-stroke: 1px var(--border); white-space: nowrap; pointer-events: none; user-select: none; width: max-content; }
         .contact-inner { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; text-align: center; }
@@ -310,6 +374,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .contact-btn { display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s; }
         .contact-btn:hover { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
 
+        /* FOOTER */
         footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; background: var(--surface); flex-wrap: wrap; gap: 24px; }
         .footer-logo { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
         .footer-logo span { color: var(--accent); }
@@ -318,6 +383,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .footer-links a { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; padding: 6px 12px; border: 1px solid var(--border); }
         .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
 
+        /* SERVICES */
         .services-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
         .service-card { background: var(--surface); padding: 48px 40px; position: relative; overflow: hidden; transition: background 0.3s; }
@@ -329,6 +395,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .service-name { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; margin-bottom: 16px; }
         .service-desc { font-size: 13px; font-weight: 200; line-height: 1.8; color: #666; }
 
+        /* RESPONSIVE */
         @media (max-width: 900px) {
           .nav { padding: 20px 24px; }
           .nav.solid { padding: 14px 24px; }
@@ -344,7 +411,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           .project-row-cat, .project-row-tags { display: none; }
           .project-row-title { font-size: clamp(18px, 4.5vw, 28px); white-space: normal; }
           .feedbacks-section { padding: 80px 24px; }
-          .feedbacks-grid { grid-template-columns: repeat(2, 1fr); gap: 1px; }
+          .feedbacks-grid { columns: 2; column-gap: 12px; }
+          .feedback-img-item { margin-bottom: 12px; }
           .form-section { padding: 80px 24px; }
           .form-grid { grid-template-columns: 1fr; gap: 40px; }
           .services-section { padding: 80px 24px; }
@@ -353,9 +421,10 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           .contact-heading { font-size: clamp(56px, 14vw, 100px); }
           .contact-btn { padding: 16px 32px; width: 100%; justify-content: center; }
           footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+          .lightbox-image-wrap { padding: 20px 56px; }
           .lightbox-arrow { width: 44px; height: 44px; }
-          .lightbox-arrow.left { left: 8px; }
-          .lightbox-arrow.right { right: 8px; }
+          .lightbox-arrow.left { left: 4px; }
+          .lightbox-arrow.right { right: 4px; }
           .lightbox-header { padding: 14px 16px; }
           .lightbox-tags { padding: 12px 16px; }
           .lightbox-counter { padding: 0 8px; }
@@ -367,7 +436,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           .contact-heading { font-size: clamp(48px, 13vw, 80px); }
           .contact-email { font-size: clamp(16px, 4.5vw, 24px); word-break: break-all; }
           .form-left-title { font-size: clamp(36px, 10vw, 56px); }
-          .feedbacks-grid { grid-template-columns: 1fr; }
+          .feedbacks-grid { columns: 1; }
+          .lightbox-image-wrap { padding: 16px 48px; }
         }
       `}</style>
 
@@ -391,21 +461,37 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               )}
             </div>
             <div className="lightbox-controls">
-              <button className="lightbox-btn" onClick={prevLightbox}>←</button>
-              <span className="lightbox-counter">{lightbox.index + 1} / {lightbox.images.length}</span>
-              <button className="lightbox-btn" onClick={nextLightbox}>→</button>
+              {lightbox.images.length > 1 && (
+                <>
+                  <button className="lightbox-btn" onClick={prevLightbox}>←</button>
+                  <span className="lightbox-counter">{lightbox.index + 1} / {lightbox.images.length}</span>
+                  <button className="lightbox-btn" onClick={nextLightbox}>→</button>
+                </>
+              )}
               <button className="lightbox-btn lightbox-close" onClick={closeLightbox}>✕</button>
             </div>
           </div>
-          <div className="lightbox-image-wrap">
-            <Image src={activeImg.url} alt={activeImg.title} fill style={{ objectFit: 'contain' }} sizes="100vw" priority />
-            {lightbox.images.length > 1 && (
-              <>
-                <button className="lightbox-arrow left" onClick={prevLightbox}>←</button>
-                <button className="lightbox-arrow right" onClick={nextLightbox}>→</button>
-              </>
-            )}
+
+          {/* Imagem em tamanho original, sem corte, com scroll se necessário */}
+          <div className="lightbox-image-wrap" onClick={e => e.stopPropagation()}>
+            <Image
+              src={activeImg.url}
+              alt={activeImg.title}
+              width={activeImg.width || 1200}
+              height={activeImg.height || 900}
+              style={{ width: 'auto', height: 'auto', maxWidth: '100%' }}
+              sizes="100vw"
+              priority
+            />
           </div>
+
+          {lightbox.images.length > 1 && (
+            <>
+              <button className="lightbox-arrow left" onClick={prevLightbox}>←</button>
+              <button className="lightbox-arrow right" onClick={nextLightbox}>→</button>
+            </>
+          )}
+
           {activeImg.tags && activeImg.tags.length > 0 && (
             <div className="lightbox-tags" onClick={e => e.stopPropagation()}>
               {activeImg.tags.map(t => <span key={t} className="lightbox-tag">{t}</span>)}
@@ -431,7 +517,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
       {/* APRESENTAÇÃO */}
       <section className="about-hero" id="sobre">
         <div className="about-hero-photo">
-          {/* Placeholder visível enquanto a foto não carrega */}
           <div className="about-hero-photo-placeholder">
             <div className="photo-placeholder-circle">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
@@ -440,11 +525,11 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
             </div>
             <span className="photo-placeholder-label">Foto de perfil</span>
           </div>
-          {/* Foto — vem do Sanity ou fallback /mello.jpeg */}
           <Image
             src={profilePhotoUrl}
             alt={hero?.name ? `${hero.name} ${hero.nameAccent}` : 'Isaías Melo'}
             fill
+            sizes="50vw"
             style={{ objectFit: 'cover', objectPosition: 'center top' }}
           />
           <div className="about-hero-photo-overlay" />
@@ -511,7 +596,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               <div className="project-list">
                 {catProjects.map((p, i) => {
                   const hasMedia = !!(p.imageUrl || (p.images && p.images.length > 0))
-                  const previewUrl = p.imageUrl || (p.images && p.images[0]) || null
+                  const previewUrl = p.imageUrl || (p.images && p.images[0]?.url) || null
+                  const photoCount = p.images?.length || (p.imageUrl ? 1 : 0)
                   return (
                     <div
                       key={p._id}
@@ -522,11 +608,18 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
                     >
                       <span className="project-row-num">{String(i + 1).padStart(2, '0')}</span>
                       <span className="project-row-title">{p.title}</span>
-                      <span className="project-row-cat">{p.category}</span>
+                      <span className="project-row-cat">
+                        {p.category}
+                        {photoCount > 1 && (
+                          <span style={{ marginLeft: 8, fontSize: 9, color: 'var(--accent)', fontFamily: 'var(--font-display)', letterSpacing: '0.1em' }}>
+                            {photoCount} FOTOS
+                          </span>
+                        )}
+                      </span>
                       <div className="project-row-tags">{p.tags?.map(t => <span key={t}>{t}</span>)}</div>
                       {previewUrl && (
-                        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 180, overflow: 'hidden', opacity: hovered === p._id ? 1 : 0, transition: 'opacity 0.3s', zIndex: 2, pointerEvents: 'none' }}>
-                          <Image src={previewUrl} alt={p.title} fill style={{ objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 160, opacity: hovered === p._id ? 1 : 0, transition: 'opacity 0.3s', zIndex: 2, pointerEvents: 'none' }}>
+                          <img src={previewUrl} alt={p.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
                         </div>
                       )}
                     </div>
@@ -544,17 +637,17 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         <h2 className="work-title" style={{ marginTop: 8 }}>FEED<span className="work-title-alt">BACKS</span></h2>
         <div className="feedbacks-grid">
           {feedbackImages.length > 0
-            ? feedbackImages.map((img: { url: string; alt?: string }, i: number) => (
+            ? feedbackImages.map((img, i) => (
                 <div key={i} className="feedback-img-item" onClick={() => openFeedbackLightbox(i)}>
                   <div className="feedback-bar" />
                   <div className="feedback-img-inner">
                     <Image
                       src={img.url}
                       alt={img.alt || `Feedback ${i + 1}`}
-                      width={800}
-                      height={600}
+                      width={img.width || 800}
+                      height={img.height || 600}
                       style={{ width: '100%', height: 'auto' }}
-                      sizes="(max-width: 600px) 50vw, 33vw"
+                      sizes="(max-width: 480px) 100vw, (max-width: 900px) 50vw, 33vw"
                     />
                     <div className="feedback-img-overlay">
                       <span className="feedback-img-icon">+</span>
