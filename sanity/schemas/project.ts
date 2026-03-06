@@ -20,6 +20,9 @@ export default {
           { title: 'Direção de Arte', value: 'Direção de Arte' },
           { title: 'Fotografia / Design', value: 'Fotografia / Design' },
           { title: 'Editorial', value: 'Editorial' },
+          { title: 'Identidade Visual', value: 'Identidade Visual' },
+          { title: 'Social Media', value: 'Social Media' },
+          { title: 'Impressos / OOH', value: 'Impressos / OOH' },
         ],
       },
       validation: (Rule: any) => Rule.required(),
@@ -41,6 +44,7 @@ export default {
     {
       name: 'coverImage',
       title: 'Imagem de Capa',
+      description: 'Foto principal exibida na lista de projetos e como primeira imagem no lightbox',
       type: 'image',
       options: { hotspot: true },
       fields: [
@@ -50,6 +54,28 @@ export default {
           type: 'string',
         },
       ],
+    },
+    {
+      name: 'images',
+      title: 'Galeria de Imagens',
+      description: 'Adicione todas as fotos deste projeto. Ao clicar no projeto, o visitante navega entre elas com as setas.',
+      type: 'array',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            {
+              name: 'alt',
+              title: 'Texto alternativo (acessibilidade)',
+              type: 'string',
+            },
+          ],
+        },
+      ],
+      options: {
+        layout: 'grid',
+      },
     },
     {
       name: 'order',

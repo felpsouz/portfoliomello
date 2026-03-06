@@ -69,12 +69,12 @@ const PROJECTS_QUERY = `
     year,
     tags,
     coverImage {
-      asset,
+      asset-> { url, metadata { dimensions { width, height } } },
       alt,
       hotspot
     },
     images[] {
-      asset,
+      asset-> { url, metadata { dimensions { width, height } } },
       alt,
       hotspot
     },

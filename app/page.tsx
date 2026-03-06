@@ -60,13 +60,38 @@ export default async function Home() {
     console.error('Erro ao buscar dados do Sanity:', error)
   }
 
-  const projectsWithImages = projects.map((p) => ({
-    ...p,
-    imageUrl: safeImageUrl(p.coverImage),
-    images: Array.isArray(p.images)
-      ? p.images.map((img: any) => safeImageUrl(img, 1200, 900)).filter(Boolean)
-      : [],
-  }))
+  const projectsWithImages = projects.map((p) => {
+    // Galeria de imagens com dimensões reais
+    const images = Array.isArray(p.images)
+      ? p.images
+          .filter((img: any) => img?.asset?.url)
+          .map((img: any) => ({
+            url: img.asset.url as string,
+            width: img.asset.metadata?.dimensions?.width as number || 1200,
+            height: img.asset.metadata?.dimensions?.height as number || 900,
+          }))
+      : []
+
+    // Capa: usa coverImage se existir, senão usa a primeira da galeria
+    const hasCover = !!p.coverImage?.asset?.url
+    const coverUrl = hasCover
+      ? (p.coverImage.asset.url as string)
+      : (images[0]?.url || null)
+    const coverW = hasCover
+      ? (p.coverImage.asset.metadata?.dimensions?.width as number || 1200)
+      : (images[0]?.width || 1200)
+    const coverH = hasCover
+      ? (p.coverImage.asset.metadata?.dimensions?.height as number || 900)
+      : (images[0]?.height || 900)
+
+    return {
+      ...p,
+      imageUrl: coverUrl,
+      imageWidth: coverW,
+      imageHeight: coverH,
+      images,
+    }
+  })
 
   // Foto de perfil resolvida — usa /mello.jpeg como fallback
   const profilePhotoUrl = safeImageUrl(settings.heroSection?.profilePhoto, 1200, 1600) || '/mello.jpeg'

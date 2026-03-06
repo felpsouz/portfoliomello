@@ -57,7 +57,11 @@ const PROJECTS: ProjectWithImage[] = [
 ]
 
 const DEFAULT_SERVICES = [
-
+  { name: 'Identidade Visual', description: 'Criação de marca completa: logo, paleta, tipografia e manual de identidade visual para posicionar sua empresa com consistência e personalidade.' },
+  { name: 'Design para Social Media', description: 'Criação de peças visuais para Instagram, Facebook e outras plataformas, com linguagem visual alinhada à identidade da sua marca.' },
+  { name: 'Calendário Editorial', description: 'Planejamento estratégico de conteúdo com datas, pautas e formatos definidos para manter sua marca sempre presente e relevante.' },
+  { name: 'Impressos e Mídia OOH', description: 'Desenvolvimento de materiais impressos e comunicação visual para o ambiente físico: banners, cartões, embalagens, adesivos, vestuário e muito mais.' },
+  { name: 'Fotografia', description: 'Ensaios empresariais, institucionais, eventos e fotografia documental. Imagens que comunicam, engajam e eternizam momentos importantes.' },
 ]
 
 export default function PortfolioClient({ projects: _projects, settings }: Props) {
