@@ -541,11 +541,12 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
             <span className="about-hero-eyebrow-line" />
             {hero?.eyebrow || 'Diretor de Arte & Fotógrafo — Sergipe, Brasil'}
           </p>
+          {/*
           <h1 className="about-hero-name">
             {hero?.name || 'ISAÍAS'}<br />
             <span className="accent">{hero?.nameAccent || 'MELO'}</span>
-          </h1>
-          <p className="about-hero-role">{hero?.role || 'Publicidade & Propaganda · UFS · 7º Período'}</p>
+          </h1>*/}
+          {/*<p className="about-hero-role">{hero?.role || 'Publicidade & Propaganda · UFS · 7º Período'}</p>*/}
           <p className={`about-hero-text ${loaded ? 'in' : ''}`}>
             {hero?.paragraph1 || 'Olá, meu nome é Isaías Melo. Tenho 24 anos e estou no 7º período de Publicidade e Propaganda na Universidade Federal de Sergipe.'}
           </p>
@@ -686,11 +687,11 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
       {/* FORMULÁRIO */}
       <section className="form-section" id="formulario">
-        <p className="work-label">Deixe seu contato</p>
+        {/*<p className="work-label">Deixe seu contato</p>*/}
         <div className="form-grid">
           <div>
             <h2 className="form-left-title">
-              VAMOS<br /><span className="inv">CRIAR</span><br />JUNTOS?
+              DEIXE<br /><span className="inv">SEU</span><br />CONTATO
             </h2>
             <p className="form-left-desc">
               Preencha o formulário ao lado com seu nome, telefone e e-mail. Entrarei em contato para entender o seu projeto e apresentar a melhor solução para a sua marca.
