@@ -663,7 +663,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         <div className="contact-bg-text">CONTATO</div>
         <div className="contact-inner">
           <span className="contact-label">Vamos trabalhar juntos</span>
-          <h2 className="contact-heading">DIGA<br /><span className="inv">OLÁ.</span></h2>
           <a href={`mailto:${contact?.email || 'isaiasmellomkt@gmail.com'}`} className="contact-email">
             {contact?.email || 'isaiasmellomkt@gmail.com'}
           </a>
