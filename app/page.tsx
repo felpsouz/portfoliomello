@@ -1,5 +1,5 @@
-import { getProjects, getSiteSettings } from '../src/sanity/queries'
-import { urlFor } from '../src/sanity/client'
+import { getProjects, getSiteSettings } from '../sanity/queries'
+import { urlFor } from '../sanity/client'
 import PortfolioClient from './PortfolioClient'
 
 const defaultSettings = {

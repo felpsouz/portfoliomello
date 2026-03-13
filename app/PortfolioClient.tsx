@@ -15,7 +15,6 @@ type ProjectWithImage = {
   images?: { url: string; width: number; height: number }[]
 }
 
-// Settings resolvido vindo do page.tsx
 type ResolvedSettings = {
   profilePhotoUrl: string | null
   heroSection: {
@@ -55,7 +54,6 @@ function GrainOverlay() {
 }
 
 const PROJECTS: ProjectWithImage[] = []
-
 const DEFAULT_SERVICES: { name: string; description: string }[] = []
 
 export default function PortfolioClient({ projects: _projects, settings }: Props) {
@@ -70,6 +68,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
   } | null>(null)
   const [formData, setFormData] = useState({ nome: '', telefone: '', email: '' })
   const [formSent, setFormSent] = useState(false)
+  const [formLoading, setFormLoading] = useState(false)
+  const [formError, setFormError] = useState('')
   const touchStartX = useRef<number>(0)
   const touchStartY = useRef<number>(0)
 
@@ -83,38 +83,16 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
     ? `https://wa.me/${contact.whatsapp}`
     : 'https://wa.me/5579981149177'
 
-  // Abre lightbox com capa + todas as fotos da galeria
   const openProjectLightbox = (project: ProjectWithImage) => {
     const imgs: { url: string; title: string; category: string; year: string; tags: string[]; width?: number; height?: number }[] = []
-
-    // Capa sempre primeira
     if (project.imageUrl) {
-      imgs.push({
-        url: project.imageUrl,
-        title: project.title,
-        category: project.category,
-        year: project.year,
-        tags: project.tags,
-        width: project.imageWidth,
-        height: project.imageHeight,
-      })
+      imgs.push({ url: project.imageUrl, title: project.title, category: project.category, year: project.year, tags: project.tags, width: project.imageWidth, height: project.imageHeight })
     }
-
-    // Galeria em seguida (sem repetir a capa)
     if (project.images && project.images.length > 0) {
       project.images.forEach((img, i) => {
-        imgs.push({
-          url: img.url,
-          title: `${project.title} — ${i + 1}/${project.images!.length}`,
-          category: project.category,
-          year: project.year,
-          tags: project.tags,
-          width: img.width,
-          height: img.height,
-        })
+        imgs.push({ url: img.url, title: `${project.title} — ${i + 1}/${project.images!.length}`, category: project.category, year: project.year, tags: project.tags, width: img.width, height: img.height })
       })
     }
-
     if (imgs.length === 0) return
     setLightbox({ images: imgs, index: 0 })
     document.body.style.overflow = 'hidden'
@@ -123,42 +101,46 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
   const openFeedbackLightbox = (index: number) => {
     if (!feedbackImages.length) return
     setLightbox({
-      images: feedbackImages.map((img, i) => ({
-        url: img.url,
-        title: img.alt || `Feedback ${i + 1}`,
-        category: '',
-        year: '',
-        tags: [],
-        width: img.width,
-        height: img.height,
-      })),
+      images: feedbackImages.map((img, i) => ({ url: img.url, title: img.alt || `Feedback ${i + 1}`, category: '', year: '', tags: [], width: img.width, height: img.height })),
       index,
     })
     document.body.style.overflow = 'hidden'
   }
 
-  const closeLightbox = () => {
-    setLightbox(null)
-    document.body.style.overflow = ''
-  }
+  const closeLightbox = () => { setLightbox(null); document.body.style.overflow = '' }
+  const prevLightbox = (e?: React.MouseEvent) => { e?.stopPropagation(); if (!lightbox) return; setLightbox({ ...lightbox, index: (lightbox.index - 1 + lightbox.images.length) % lightbox.images.length }) }
+  const nextLightbox = (e?: React.MouseEvent) => { e?.stopPropagation(); if (!lightbox) return; setLightbox({ ...lightbox, index: (lightbox.index + 1) % lightbox.images.length }) }
 
-  const prevLightbox = (e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    if (!lightbox) return
-    setLightbox({ ...lightbox, index: (lightbox.index - 1 + lightbox.images.length) % lightbox.images.length })
-  }
-
-  const nextLightbox = (e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    if (!lightbox) return
-    setLightbox({ ...lightbox, index: (lightbox.index + 1) % lightbox.images.length })
-  }
-
-  const handleFormSubmit = (e: React.FormEvent) => {
+  // ── Formulário → API Route → Resend → Gmail ───────────────────────────────
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setFormSent(true)
-    setFormData({ nome: '', telefone: '', email: '' })
+    setFormError('')
+
+    if (!formData.nome.trim() || !formData.telefone.trim()) {
+      setFormError('Por favor, preencha o nome e o telefone.')
+      return
+    }
+
+    setFormLoading(true)
+
+    try {
+      const res = await fetch('/api/contato', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+
+      if (!res.ok) throw new Error('Erro no envio')
+
+      setFormSent(true)
+      setFormData({ nome: '', telefone: '', email: '' })
+    } catch {
+      setFormError('Algo deu errado. Tente novamente ou entre em contato pelo WhatsApp.')
+    } finally {
+      setFormLoading(false)
+    }
   }
+  // ──────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     setTimeout(() => setLoaded(true), 80)
@@ -206,7 +188,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-weight: 200; overflow-x: hidden; cursor: crosshair; max-width: 100vw; }
         ::selection { background: var(--accent); color: #fff; }
 
-        /* NAV */
         .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; transition: background 0.3s, padding 0.3s, border-color 0.3s; border-bottom: 1px solid transparent; }
         .nav.solid { background: rgba(13,13,13,0.92); backdrop-filter: blur(16px); padding: 16px 48px; border-color: var(--border); }
         .nav-logo { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
@@ -217,7 +198,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .nav-cta { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--bg); background: var(--accent); text-decoration: none; padding: 10px 20px; transition: background 0.2s, transform 0.2s; }
         .nav-cta:hover { background: var(--accent2); color: var(--bg); transform: translate(-2px,-2px); }
 
-        /* HERO */
         .about-hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; border-bottom: 1px solid var(--border); }
         .about-hero-photo { position: relative; overflow: hidden; background: var(--surface); }
         .about-hero-photo-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
@@ -239,14 +219,12 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .about-hero-cta:hover { background: var(--accent); color: var(--bg); transform: translate(-2px, -2px); }
         .about-hero-accent-block { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); z-index: 3; }
 
-        /* TICKER */
         .ticker { overflow: hidden; width: 100%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--accent); }
         .ticker-track { display: flex; animation: ticker 20s linear infinite; white-space: nowrap; }
         .ticker-item { display: flex; align-items: center; gap: 24px; padding: 14px 32px; font-family: var(--font-display); font-size: 16px; letter-spacing: 0.1em; color: var(--bg); flex-shrink: 0; }
         .ticker-sep { opacity: 0.4; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        /* WORK */
         .work-section { padding: 120px 48px; }
         .work-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 80px; }
         .work-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
@@ -274,7 +252,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .no-image-row:hover .project-row-num, .no-image-row:hover .project-row-title, .no-image-row:hover .project-row-cat { color: inherit !important; }
         .no-image-row:hover .project-row-tags span { background: transparent !important; color: var(--muted) !important; border-color: var(--border) !important; }
 
-        /* LIGHTBOX */
         .lightbox-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.97); display: flex; flex-direction: column; animation: lbIn 0.3s ease; }
         @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
         .lightbox-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
@@ -287,26 +264,8 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .lightbox-btn:hover { background: var(--accent); border-color: var(--accent); color: #000; }
         .lightbox-close { font-size: 22px; }
         .lightbox-counter { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.1em; color: var(--muted); padding: 0 16px; }
-
-        /* Lightbox image — cabe na tela, sem corte, sem scroll lateral */
-        .lightbox-image-wrap {
-          flex: 1;
-          overflow-y: auto;
-          overflow-x: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 24px 72px;
-        }
-        .lightbox-image-wrap img {
-          max-width: 100% !important;
-          max-height: calc(100vh - 160px) !important;
-          width: auto !important;
-          height: auto !important;
-          display: block;
-          object-fit: contain !important;
-        }
-
+        .lightbox-image-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; align-items: center; justify-content: center; padding: 24px 72px; }
+        .lightbox-image-wrap img { max-width: 100% !important; max-height: calc(100vh - 160px) !important; width: auto !important; height: auto !important; display: block; object-fit: contain !important; }
         .lightbox-arrow { position: fixed; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: rgba(13,13,13,0.85); color: var(--text); font-size: 20px; cursor: pointer; transition: background 0.2s, border-color 0.2s; z-index: 1001; backdrop-filter: blur(8px); }
         .lightbox-arrow:hover { background: var(--accent); border-color: var(--accent); color: #000; }
         .lightbox-arrow.left { left: 16px; }
@@ -314,23 +273,9 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .lightbox-tags { display: flex; gap: 8px; flex-wrap: wrap; padding: 16px 32px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
         .lightbox-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--border); color: var(--muted); }
 
-        /* FEEDBACKS — masonry, sem corte, com espaçamento */
         .feedbacks-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
-        .feedbacks-grid {
-          columns: 3;
-          column-gap: 16px;
-          margin-top: 80px;
-        }
-        .feedback-img-item {
-          break-inside: avoid;
-          margin-bottom: 16px;
-          position: relative;
-          background: var(--surface);
-          overflow: hidden;
-          cursor: pointer;
-          transition: background 0.3s;
-          display: block;
-        }
+        .feedbacks-grid { columns: 3; column-gap: 16px; margin-top: 80px; }
+        .feedback-img-item { break-inside: avoid; margin-bottom: 16px; position: relative; background: var(--surface); overflow: hidden; cursor: pointer; transition: background 0.3s; display: block; }
         .feedback-img-item:hover .feedback-bar { width: 100%; }
         .feedback-img-item:hover .feedback-img-inner img { transform: scale(1.02); }
         .feedback-bar { position: absolute; top: 0; left: 0; height: 3px; width: 0; background: var(--accent); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); z-index: 3; }
@@ -343,7 +288,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .feedback-img-placeholder-num { font-family: var(--font-display); font-size: 56px; color: var(--border); line-height: 1; }
         .feedback-img-placeholder-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 
-        /* FORM */
         .form-section { padding: 120px 48px; border-top: 1px solid var(--border); }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 80px; align-items: start; }
         .form-left-title { font-family: var(--font-display); font-size: clamp(40px, 5vw, 72px); line-height: 0.9; letter-spacing: 0.03em; margin-bottom: 24px; }
@@ -355,26 +299,24 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .form-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
         .form-input { background: transparent; border: none; outline: none; color: var(--text); font-family: var(--font-body); font-size: 16px; font-weight: 200; padding: 8px 0; width: 100%; }
         .form-input::placeholder { color: var(--muted); }
-        .form-submit { margin-top: 32px; display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s; cursor: pointer; border: none; width: 100%; justify-content: center; }
-        .form-submit:hover { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
+        .form-input:disabled { opacity: 0.5; cursor: not-allowed; }
+        .form-error { font-size: 12px; color: #ff6b6b; margin-top: 8px; letter-spacing: 0.05em; }
+        .form-submit { margin-top: 32px; display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s, opacity 0.2s; cursor: pointer; border: none; width: 100%; justify-content: center; }
+        .form-submit:hover:not(:disabled) { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
+        .form-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .form-success { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; border: 1px solid var(--accent); text-align: center; gap: 16px; }
         .form-success-icon { font-family: var(--font-display); font-size: 64px; color: var(--accent); line-height: 1; }
         .form-success-title { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.06em; }
         .form-success-text { font-size: 14px; font-weight: 200; color: #666; line-height: 1.8; }
 
-        /* CONTACT */
         .contact-section { padding: 120px 48px; border-top: 1px solid var(--border); position: relative; overflow: hidden; width: 100%; }
-        .contact-bg-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: var(--font-display); font-size: clamp(80px, 18vw, 280px); letter-spacing: 0.1em; color: transparent; -webkit-text-stroke: 1px var(--border); white-space: nowrap; pointer-events: none; user-select: none; width: max-content; }
         .contact-inner { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; text-align: center; }
         .contact-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 32px; display: block; }
-        .contact-heading { font-family: var(--font-display); font-size: clamp(64px, 10vw, 160px); line-height: 0.88; letter-spacing: 0.04em; margin-bottom: 48px; }
-        .contact-heading .inv { color: transparent; -webkit-text-stroke: 2px var(--text); }
         .contact-email { font-family: var(--font-display); font-size: clamp(20px, 2.5vw, 32px); letter-spacing: 0.1em; color: var(--text); text-decoration: none; display: block; margin-bottom: 56px; transition: color 0.2s; }
         .contact-email:hover { color: var(--accent); }
         .contact-btn { display: inline-flex; align-items: center; gap: 16px; background: var(--accent); color: var(--bg); font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; padding: 20px 48px; transition: background 0.2s, transform 0.2s, gap 0.2s; }
         .contact-btn:hover { background: var(--accent2); transform: translate(-4px,-4px); gap: 24px; }
 
-        /* FOOTER */
         footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; background: var(--surface); flex-wrap: wrap; gap: 24px; }
         .footer-logo { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.08em; color: var(--text); text-decoration: none; }
         .footer-logo span { color: var(--accent); }
@@ -383,7 +325,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .footer-links a { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; padding: 6px 12px; border: 1px solid var(--border); }
         .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
 
-        /* SERVICES */
         .services-section { padding: 120px 48px; border-top: 1px solid var(--border); background: var(--surface); }
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); margin-top: 80px; }
         .service-card { background: var(--surface); padding: 48px 40px; position: relative; overflow: hidden; transition: background 0.3s; }
@@ -395,7 +336,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         .service-name { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; margin-bottom: 16px; }
         .service-desc { font-size: 13px; font-weight: 200; line-height: 1.8; color: #666; }
 
-        /* RESPONSIVE */
         @media (max-width: 900px) {
           .nav { padding: 20px 24px; }
           .nav.solid { padding: 14px 24px; }
@@ -418,7 +358,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           .services-section { padding: 80px 24px; }
           .services-grid { grid-template-columns: 1fr; }
           .contact-section { padding: 80px 24px; }
-          .contact-heading { font-size: clamp(56px, 14vw, 100px); }
           .contact-btn { padding: 16px 32px; width: 100%; justify-content: center; }
           footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
           .lightbox-image-wrap { padding: 16px 52px; }
@@ -433,7 +372,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         @media (max-width: 480px) {
           .about-hero-name { font-size: clamp(44px, 12vw, 64px); }
           .work-title { font-size: clamp(48px, 12vw, 72px); }
-          .contact-heading { font-size: clamp(48px, 13vw, 80px); }
           .contact-email { font-size: clamp(16px, 4.5vw, 24px); word-break: break-all; }
           .form-left-title { font-size: clamp(36px, 10vw, 56px); }
           .feedbacks-grid { columns: 1; }
@@ -471,8 +409,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               <button className="lightbox-btn lightbox-close" onClick={closeLightbox}>✕</button>
             </div>
           </div>
-
-          {/* Imagem em tamanho original, sem corte, com scroll se necessário */}
           <div className="lightbox-image-wrap" onClick={e => e.stopPropagation()}>
             <Image
               src={activeImg.url}
@@ -484,14 +420,12 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               priority
             />
           </div>
-
           {lightbox.images.length > 1 && (
             <>
               <button className="lightbox-arrow left" onClick={prevLightbox}>←</button>
               <button className="lightbox-arrow right" onClick={nextLightbox}>→</button>
             </>
           )}
-
           {activeImg.tags && activeImg.tags.length > 0 && (
             <div className="lightbox-tags" onClick={e => e.stopPropagation()}>
               {activeImg.tags.map(t => <span key={t} className="lightbox-tag">{t}</span>)}
@@ -535,18 +469,11 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           <div className="about-hero-photo-overlay" />
           <div className="about-hero-accent-block" />
         </div>
-
         <div className="about-hero-content">
           <p className={`about-hero-eyebrow ${loaded ? 'in' : ''}`}>
             <span className="about-hero-eyebrow-line" />
             {hero?.eyebrow || 'Diretor de Arte & Fotógrafo — Sergipe, Brasil'}
           </p>
-          {/*
-          <h1 className="about-hero-name">
-            {hero?.name || 'ISAÍAS'}<br />
-            <span className="accent">{hero?.nameAccent || 'MELO'}</span>
-          </h1>*/}
-          {/*<p className="about-hero-role">{hero?.role || 'Publicidade & Propaganda · UFS · 7º Período'}</p>*/}
           <p className={`about-hero-text ${loaded ? 'in' : ''}`}>
             {hero?.paragraph1 || 'Olá, meu nome é Isaías Melo. Tenho 24 anos e estou no 7º período de Publicidade e Propaganda na Universidade Federal de Sergipe.'}
           </p>
@@ -575,7 +502,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
         </div>
       </div>
 
-      {/* WORK */}
+      {/* TRABALHOS */}
       <section className="work-section" id="trabalhos">
         <div className="work-header">
           <div>
@@ -584,7 +511,6 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
           </div>
           <span className="work-count">{String(projects.length).padStart(2, '0')} PROJETOS</span>
         </div>
-
         {categories.map(cat => {
           const catProjects = projects.filter(p => p.category === cat)
           return (
@@ -592,7 +518,7 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
               <div className="category-label">
                 {cat}
                 <span className="category-label-line" />
-                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-display)', fontSize: 13 }}>{String(catProjects.length).padStart(2, '0')}</span>
+                <span style={{ color: 'var(--muted)', fontFamily: 'var(--font-display)', fontSize: 13 }}>{String(catProjects.length).padStart(2, '00')}</span>
               </div>
               <div className="project-list">
                 {catProjects.map((p, i) => {
@@ -687,39 +613,49 @@ export default function PortfolioClient({ projects: _projects, settings }: Props
 
       {/* FORMULÁRIO */}
       <section className="form-section" id="formulario">
-        {/*<p className="work-label">Deixe seu contato</p>*/}
         <div className="form-grid">
           <div>
             <h2 className="form-left-title">
               DEIXE<br /><span className="inv">SEU</span><br />CONTATO
             </h2>
             <p className="form-left-desc">
-              Preencha o formulário ao lado com seu nome, telefone e e-mail. Entrarei em contato para entender o seu projeto e apresentar a melhor solução para a sua marca.
+              Preencha o formulário com seu nome, telefone e e-mail. Entrarei em contato para entender o seu projeto e apresentar a melhor solução para a sua marca.
             </p>
           </div>
           <div className="form-right">
             {formSent ? (
               <div className="form-success">
                 <span className="form-success-icon">✓</span>
-                <h3 className="form-success-title">MENSAGEM RECEBIDA</h3>
-                <p className="form-success-text">Obrigado pelo contato! Em breve entrarei em contato com você.</p>
+                <h3 className="form-success-title">RECEBIDO!</h3>
+                <p className="form-success-text">
+                  Obrigado pelo contato! Entrarei em breve para conversar sobre o seu projeto.
+                </p>
+                <button
+                  onClick={() => setFormSent(false)}
+                  style={{ marginTop: 16, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '10px 20px', cursor: 'pointer' }}
+                >
+                  Enviar outro
+                </button>
               </div>
             ) : (
               <>
                 <div className="form-field">
                   <label className="form-label">Nome completo</label>
-                  <input className="form-input" type="text" placeholder="Seu nome" value={formData.nome} onChange={e => setFormData(f => ({ ...f, nome: e.target.value }))} />
+                  <input className="form-input" type="text" placeholder="Seu nome" value={formData.nome} onChange={e => setFormData(f => ({ ...f, nome: e.target.value }))} disabled={formLoading} />
                 </div>
                 <div className="form-field">
                   <label className="form-label">Telefone / WhatsApp</label>
-                  <input className="form-input" type="tel" placeholder="(79) 9 0000-0000" value={formData.telefone} onChange={e => setFormData(f => ({ ...f, telefone: e.target.value }))} />
+                  <input className="form-input" type="tel" placeholder="(79) 9 0000-0000" value={formData.telefone} onChange={e => setFormData(f => ({ ...f, telefone: e.target.value }))} disabled={formLoading} />
                 </div>
                 <div className="form-field">
-                  <label className="form-label">E-mail</label>
-                  <input className="form-input" type="email" placeholder="seu@email.com" value={formData.email} onChange={e => setFormData(f => ({ ...f, email: e.target.value }))} />
+                  <label className="form-label">
+                    E-mail <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span>
+                  </label>
+                  <input className="form-input" type="email" placeholder="seu@email.com" value={formData.email} onChange={e => setFormData(f => ({ ...f, email: e.target.value }))} disabled={formLoading} />
                 </div>
-                <button className="form-submit" onClick={handleFormSubmit}>
-                  Enviar <span>→</span>
+                {formError && <p className="form-error">{formError}</p>}
+                <button className="form-submit" onClick={handleFormSubmit} disabled={formLoading}>
+                  {formLoading ? 'Enviando...' : 'Enviar'} <span>{formLoading ? '⏳' : '→'}</span>
                 </button>
               </>
             )}
