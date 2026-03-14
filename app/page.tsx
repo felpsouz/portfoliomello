@@ -36,13 +36,20 @@ const defaultSettings = {
   },
 }
 
-function safeImageUrl(image: any, width = 800, height = 600): string | null {
-  if (!image?.asset?._ref) return null
+function safeImageUrl(image: unknown, width = 800, height = 600): string | null {
+  if (!image || typeof image !== 'object') return null
+  const img = image as Record<string, unknown>
+  if (!img?.asset) return null
   try {
     return urlFor(image).width(width).height(height).auto('format').url()
   } catch {
     return null
   }
+}
+
+// Garante que strings vindas do Sanity são de fato strings
+function safeStr(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback
 }
 
 export default async function Home() {
@@ -54,57 +61,59 @@ export default async function Home() {
       getProjects(),
       getSiteSettings(),
     ])
-    projects = fetchedProjects || []
-    if (fetchedSettings) settings = { ...defaultSettings, ...fetchedSettings, heroSection: { ...defaultSettings.heroSection, ...fetchedSettings.heroSection }, contactSection: { ...defaultSettings.contactSection, ...fetchedSettings.contactSection } }
+    projects = Array.isArray(fetchedProjects) ? fetchedProjects : []
+    if (fetchedSettings) {
+      settings = {
+        ...defaultSettings,
+        ...fetchedSettings,
+        heroSection: { ...defaultSettings.heroSection, ...fetchedSettings.heroSection },
+        contactSection: { ...defaultSettings.contactSection, ...fetchedSettings.contactSection },
+      }
+    }
   } catch (error) {
     console.error('Erro ao buscar dados do Sanity:', error)
   }
 
   const projectsWithImages = projects.map((p) => {
-    // Galeria de imagens com dimensões reais
     const images = Array.isArray(p.images)
       ? p.images
           .filter((img: any) => img?.asset?.url)
           .map((img: any) => ({
-            url: img.asset.url as string,
-            width: img.asset.metadata?.dimensions?.width as number || 1200,
-            height: img.asset.metadata?.dimensions?.height as number || 900,
+            url: safeStr(img.asset.url),
+            width: Number(img.asset.metadata?.dimensions?.width) || 1200,
+            height: Number(img.asset.metadata?.dimensions?.height) || 900,
           }))
       : []
 
-    // Capa: usa coverImage se existir, senão usa a primeira da galeria
     const hasCover = !!p.coverImage?.asset?.url
-    const coverUrl = hasCover
-      ? (p.coverImage.asset.url as string)
-      : (images[0]?.url || null)
-    const coverW = hasCover
-      ? (p.coverImage.asset.metadata?.dimensions?.width as number || 1200)
-      : (images[0]?.width || 1200)
-    const coverH = hasCover
-      ? (p.coverImage.asset.metadata?.dimensions?.height as number || 900)
-      : (images[0]?.height || 900)
+    const coverUrl = hasCover ? safeStr(p.coverImage.asset.url) : (images[0]?.url || null)
+    const coverW   = hasCover ? (Number(p.coverImage.asset.metadata?.dimensions?.width) || 1200) : (images[0]?.width || 1200)
+    const coverH   = hasCover ? (Number(p.coverImage.asset.metadata?.dimensions?.height) || 900) : (images[0]?.height || 900)
 
     return {
-      ...p,
-      imageUrl: coverUrl,
-      imageWidth: coverW,
+      _id:      safeStr(p._id),
+      title:    safeStr(p.title),
+      category: safeStr(p.category),
+      year:     safeStr(p.year),
+      tags:     Array.isArray(p.tags) ? p.tags.map((t: unknown) => safeStr(t)) : [],
+      imageUrl:    coverUrl,
+      imageWidth:  coverW,
       imageHeight: coverH,
       images,
     }
   })
 
-  // Foto de perfil resolvida — usa /mello.jpeg como fallback
-  const profilePhotoUrl = safeImageUrl(settings.heroSection?.profilePhoto, 1200, 1600) || '/mello.jpeg'
+  const profilePhotoUrl =
+    safeImageUrl(settings.heroSection?.profilePhoto, 1200, 1600) || '/mello.jpeg'
 
-  // Feedbacks resolvidos — usa URL original do asset com dimensões reais
   const feedbackImages = Array.isArray(settings.feedbackImages)
     ? settings.feedbackImages
         .filter((img: any) => img?.asset?.url)
         .map((img: any) => ({
-          url: img.asset.url as string,
-          alt: img?.alt || '',
-          width: img?.asset?.metadata?.dimensions?.width as number || 800,
-          height: img?.asset?.metadata?.dimensions?.height as number || 600,
+          url:    safeStr(img.asset.url),
+          alt:    safeStr(img?.alt),
+          width:  Number(img?.asset?.metadata?.dimensions?.width) || 800,
+          height: Number(img?.asset?.metadata?.dimensions?.height) || 600,
         }))
     : []
 
