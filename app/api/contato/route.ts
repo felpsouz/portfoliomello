@@ -30,7 +30,7 @@ function sanitize(value: unknown, maxLength = 200): string {
 
 // ── Origens permitidas ──────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
-  'https://portfoliomello.vercel.app',
+  'https://isaiasmello.vercel.app',
   'http://localhost:3000', // desenvolvimento local
 ]
 

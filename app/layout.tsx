@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: 'Isaías Melo — Diretor de Arte & Fotógrafo',
     description:
       'Construção de marca, criação de conteúdo para redes sociais e fotografia em Sergipe.',
-    url: 'https://portfoliomello.vercel.app',
+    url: 'https://isaiasmello.vercel.app',
     siteName: 'Isaías Melo',
     locale: 'pt_BR',
     type: 'website',
